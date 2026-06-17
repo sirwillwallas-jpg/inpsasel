@@ -100,7 +100,17 @@ export function CalendarioGrid({ visitas }: Props) {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="px-5 py-3 flex items-center justify-between" style={{ background: '#1a2744' }}>
             <span className="text-sm font-semibold text-white">{detalle.codigo_visita}</span>
-            <button onClick={() => setDetalle(null)} className="text-white/60 hover:text-white text-lg leading-none">×</button>
+            <div className="flex items-center gap-3">
+              <a
+                href={`/visitas/reporte?codigo=${detalle.codigo_visita}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-blue-300 hover:text-white font-semibold underline"
+              >
+                Imprimir
+              </a>
+              <button onClick={() => setDetalle(null)} className="text-white/60 hover:text-white text-lg leading-none">×</button>
+            </div>
           </div>
           <div className="px-5 py-4 grid grid-cols-2 gap-3 text-sm">
             <Info label="Fecha"    value={detalle.fecha} />

@@ -1,0 +1,171 @@
+
+interface VisitaReporte {
+  codigo_visita: string
+  fecha: string
+  hora: string
+  tipo_visita: string
+  estatus: string
+  cordinacion_referida?: string | null
+  observaciones?: string | null
+  motivo_visita?: string | null
+  sexo?: string | null
+  edad?: number | null
+  municipio?: string | null
+  sector?: string | null
+  cargo?: string | null
+  funcion?: string | null
+  actividad_economica?: string | null
+  funcionario?: string | null
+  id_contacto?: number | null
+  id_orden?: number | null
+}
+
+function fmtFecha(iso: string) {
+  const meses = ['enero','febrero','marzo','abril','mayo','junio',
+                 'julio','agosto','septiembre','octubre','noviembre','diciembre']
+  const [y, m, d] = iso.split('-').map(Number)
+  return `${d} de ${meses[m - 1]}, ${y}`
+}
+
+function fmtHora(h: string) {
+  const [hh, mm] = h.split(':').map(Number)
+  const ampm = hh >= 12 ? 'PM' : 'AM'
+  const hh12 = hh % 12 || 12
+  return `${String(hh12).padStart(2, '0')}:${String(mm).padStart(2, '0')} ${ampm}`
+}
+
+export function ReporteVisita({ v, idx }: { v: VisitaReporte; idx?: number }) {
+  const fechaImpresion = new Date().toLocaleString('es-VE', {
+    day: '2-digit', month: '2-digit', year: 'numeric',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+  })
+  const codVerif = `ERP-V-${Math.abs(v.codigo_visita.split('').reduce((a, c) => a + c.charCodeAt(0), 0) * 997).toString().slice(0, 6)}`
+
+  return (
+    <div
+      className="reporte-pagina bg-white mx-auto"
+      style={{
+        width: '210mm',
+        minHeight: '297mm',
+        padding: '18mm 20mm',
+        fontFamily: 'Arial, sans-serif',
+        fontSize: '11pt',
+        color: '#111',
+        pageBreakAfter: idx !== undefined ? 'always' : 'auto',
+        boxSizing: 'border-box',
+      }}
+    >
+      {/* Encabezado */}
+      <div style={{ borderBottom: '3px solid #1a2744', paddingBottom: '10px', marginBottom: '16px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div>
+            <div style={{ fontSize: '17pt', fontWeight: 'bold', color: '#1a2744', letterSpacing: '0.5px' }}>
+              REPORTE OFICIAL DE VISITA
+            </div>
+            <div style={{ fontSize: '9pt', color: '#555', marginTop: '2px' }}>
+              Documento generado desde el Sistema de Registro de Visitas de INPSASEL GENESAT Portuguesa
+            </div>
+          </div>
+          {v.id_orden && (
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: '8pt', color: '#666' }}>CÓDIGO OT</div>
+              <div style={{ fontSize: '13pt', fontWeight: 'bold', color: '#1a2744' }}>OT-{v.id_orden}</div>
+            </div>
+          )}
+        </div>
+        <div style={{ marginTop: '8px', fontSize: '9pt', color: '#888' }}>
+          Código de visita: <strong style={{ color: '#1a2744' }}>{v.codigo_visita}</strong>
+        </div>
+      </div>
+
+      {/* Sección: Datos de la visita */}
+      <Seccion titulo="DATOS DE LA VISITA">
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+          <Campo label="FECHA" valor={fmtFecha(v.fecha)} />
+          <Campo label="HORA DE INGRESO" valor={fmtHora(v.hora)} />
+          <Campo label="TIPO DE VISITA" valor={v.tipo_visita} />
+          <Campo label="ESTATUS" valor={v.estatus} />
+          {v.cordinacion_referida && (
+            <Campo label="COORDINACIÓN REFERIDA" valor={v.cordinacion_referida} />
+          )}
+        </div>
+      </Seccion>
+
+      {/* Sección: Datos del visitante */}
+      <Seccion titulo="DATOS DEL VISITANTE">
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+          {v.funcionario  && <Campo label="NOMBRE COMPLETO" valor={v.funcionario} />}
+          {v.id_contacto  && <Campo label="CÉDULA / RIF" valor={`V-${v.id_contacto}`} />}
+          {v.edad         && <Campo label="EDAD" valor={`${v.edad} años`} />}
+          {v.sexo         && <Campo label="SEXO" valor={v.sexo} />}
+          {v.municipio    && <Campo label="MUNICIPIO" valor={v.municipio} />}
+          {v.sector       && <Campo label="SECTOR" valor={v.sector} />}
+          {v.cargo        && <Campo label="CARGO" valor={v.cargo} />}
+          {v.funcion      && <Campo label="FUNCIÓN" valor={v.funcion} />}
+          {v.actividad_economica && <Campo label="ACTIVIDAD ECONÓMICA" valor={v.actividad_economica} />}
+        </div>
+        {v.motivo_visita && (
+          <div style={{ marginTop: '8px' }}>
+            <Campo label="MOTIVO DE VISITA" valor={v.motivo_visita} full />
+          </div>
+        )}
+      </Seccion>
+
+      {/* Observaciones */}
+      {v.observaciones && (
+        <Seccion titulo="OBSERVACIONES">
+          <p style={{ margin: 0, lineHeight: '1.6' }}>{v.observaciones}</p>
+        </Seccion>
+      )}
+
+      {/* Firmas */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', marginTop: '32px' }}>
+        {[
+          { label: 'Firma del Visitante',   nombre: v.funcionario ?? '___________________' },
+          { label: 'Firma del Funcionario', nombre: '___________________' },
+        ].map(({ label, nombre }) => (
+          <div key={label} style={{ textAlign: 'center' }}>
+            <div style={{ borderTop: '1px solid #333', paddingTop: '6px', marginTop: '36px' }}>
+              <div style={{ fontSize: '9pt', color: '#444' }}>{nombre}</div>
+              <div style={{ fontSize: '8pt', color: '#888', marginTop: '2px' }}>{label}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Pie de página */}
+      <div style={{
+        borderTop: '1px solid #ccc', marginTop: '24px', paddingTop: '8px',
+        display: 'flex', justifyContent: 'space-between',
+        fontSize: '7.5pt', color: '#888',
+      }}>
+        <span>Impreso automáticamente el: {fechaImpresion} • Código de verificación ERP: {codVerif}</span>
+        <span>Sistema de Registro de Visitas — INPSASEL GENESAT Portuguesa</span>
+      </div>
+    </div>
+  )
+}
+
+function Seccion({ titulo, children }: { titulo: string; children: React.ReactNode }) {
+  return (
+    <div style={{ marginBottom: '16px' }}>
+      <div style={{
+        background: '#1a2744', color: '#fff', fontWeight: 'bold',
+        fontSize: '9pt', padding: '4px 10px', marginBottom: '8px',
+        letterSpacing: '0.8px',
+      }}>
+        {titulo}
+      </div>
+      {children}
+    </div>
+  )
+}
+
+function Campo({ label, valor, full }: { label: string; valor: string; full?: boolean }) {
+  return (
+    <div style={{ gridColumn: full ? '1/-1' : undefined }}>
+      <span style={{ fontSize: '7.5pt', color: '#666', fontWeight: 'bold', letterSpacing: '0.5px' }}>{label}: </span>
+      <span style={{ fontSize: '10.5pt' }}>{valor}</span>
+    </div>
+  )
+}
