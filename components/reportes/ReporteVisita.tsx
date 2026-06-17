@@ -1,3 +1,4 @@
+import React from 'react'
 
 interface VisitaReporte {
   codigo_visita: string
@@ -34,12 +35,14 @@ function fmtHora(h: string) {
   return `${String(hh12).padStart(2, '0')}:${String(mm).padStart(2, '0')} ${ampm}`
 }
 
-export function ReporteVisita({ v, idx }: { v: VisitaReporte; idx?: number }) {
+export function ReporteVisita({ v }: { v: VisitaReporte }) {
   const fechaImpresion = new Date().toLocaleString('es-VE', {
     day: '2-digit', month: '2-digit', year: 'numeric',
     hour: '2-digit', minute: '2-digit', second: '2-digit',
   })
-  const codVerif = `ERP-V-${Math.abs(v.codigo_visita.split('').reduce((a, c) => a + c.charCodeAt(0), 0) * 997).toString().slice(0, 6)}`
+  const codVerif = `ERP-V-${Math.abs(
+    v.codigo_visita.split('').reduce((a, c) => a + c.charCodeAt(0), 0) * 997
+  ).toString().slice(0, 6)}`
 
   return (
     <div
@@ -47,79 +50,95 @@ export function ReporteVisita({ v, idx }: { v: VisitaReporte; idx?: number }) {
       style={{
         width: '210mm',
         minHeight: '297mm',
-        padding: '18mm 20mm',
-        fontFamily: 'Arial, sans-serif',
-        fontSize: '11pt',
+        padding: '14mm 18mm',
+        fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+        fontSize: '10.5pt',
         color: '#111',
-        pageBreakAfter: idx !== undefined ? 'always' : 'auto',
         boxSizing: 'border-box',
       }}
     >
-      {/* Encabezado */}
-      <div style={{ borderBottom: '3px solid #1a2744', paddingBottom: '10px', marginBottom: '16px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <div>
-            <div style={{ fontSize: '17pt', fontWeight: 'bold', color: '#1a2744', letterSpacing: '0.5px' }}>
-              REPORTE OFICIAL DE VISITA
-            </div>
-            <div style={{ fontSize: '9pt', color: '#555', marginTop: '2px' }}>
-              Documento generado desde el Sistema de Registro de Visitas de INPSASEL GENESAT Portuguesa
-            </div>
+      {/* ── Encabezado ───────────────────────────────────────── */}
+      <div style={{
+        borderBottom: '3px solid #1a2744',
+        paddingBottom: '10px',
+        marginBottom: '14px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        gap: '16px',
+      }}>
+        {/* Texto izquierda */}
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: '15pt', fontWeight: 'bold', color: '#1a2744', letterSpacing: '0.3px' }}>
+            REPORTE OFICIAL DE VISITA
           </div>
-          {v.id_orden && (
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: '8pt', color: '#666' }}>CÓDIGO OT</div>
-              <div style={{ fontSize: '13pt', fontWeight: 'bold', color: '#1a2744' }}>OT-{v.id_orden}</div>
-            </div>
-          )}
+          <div style={{ fontSize: '8pt', color: '#555', marginTop: '2px' }}>
+            Sistema de Registro de Visitas — INPSASEL GENESAT Portuguesa
+          </div>
+          <div style={{ marginTop: '6px', fontSize: '8.5pt' }}>
+            <span style={{ color: '#666' }}>Código: </span>
+            <strong style={{ color: '#1a2744' }}>{v.codigo_visita}</strong>
+            {v.id_orden && (
+              <span style={{ marginLeft: '16px', color: '#666' }}>
+                OT: <strong style={{ color: '#1a2744' }}>OT-{v.id_orden}</strong>
+              </span>
+            )}
+          </div>
         </div>
-        <div style={{ marginTop: '8px', fontSize: '9pt', color: '#888' }}>
-          Código de visita: <strong style={{ color: '#1a2744' }}>{v.codigo_visita}</strong>
-        </div>
+
+        {/* Logo derecha */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="https://tse3.mm.bing.net/th/id/OIP.EM3DltdiNLHzZh23cV-MYQHaHa?rs=1&pid=ImgDetMain&o=7&rm=3"
+          alt="INPSASEL"
+          style={{ width: '52px', height: '52px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
+        />
       </div>
 
-      {/* Sección: Datos de la visita */}
+      {/* ── Datos de la visita ───────────────────────────────── */}
       <Seccion titulo="DATOS DE LA VISITA">
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-          <Campo label="FECHA" valor={fmtFecha(v.fecha)} />
-          <Campo label="HORA DE INGRESO" valor={fmtHora(v.hora)} />
-          <Campo label="TIPO DE VISITA" valor={v.tipo_visita} />
-          <Campo label="ESTATUS" valor={v.estatus} />
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 24px' }}>
+          <Campo label="FECHA"            valor={fmtFecha(v.fecha)} />
+          <Campo label="HORA DE INGRESO"  valor={fmtHora(v.hora)} />
+          <Campo label="TIPO DE VISITA"   valor={v.tipo_visita} />
+          <Campo label="ESTATUS"          valor={v.estatus} />
           {v.cordinacion_referida && (
             <Campo label="COORDINACIÓN REFERIDA" valor={v.cordinacion_referida} />
           )}
         </div>
       </Seccion>
 
-      {/* Sección: Datos del visitante */}
+      {/* ── Datos del visitante ──────────────────────────────── */}
       <Seccion titulo="DATOS DEL VISITANTE">
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-          {v.funcionario  && <Campo label="NOMBRE COMPLETO" valor={v.funcionario} />}
-          {v.id_contacto  && <Campo label="CÉDULA / RIF" valor={`V-${v.id_contacto}`} />}
-          {v.edad         && <Campo label="EDAD" valor={`${v.edad} años`} />}
-          {v.sexo         && <Campo label="SEXO" valor={v.sexo} />}
-          {v.municipio    && <Campo label="MUNICIPIO" valor={v.municipio} />}
-          {v.sector       && <Campo label="SECTOR" valor={v.sector} />}
-          {v.cargo        && <Campo label="CARGO" valor={v.cargo} />}
-          {v.funcion      && <Campo label="FUNCIÓN" valor={v.funcion} />}
-          {v.actividad_economica && <Campo label="ACTIVIDAD ECONÓMICA" valor={v.actividad_economica} />}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 24px' }}>
+          {v.funcionario   && <Campo label="NOMBRE COMPLETO" valor={v.funcionario} />}
+          {v.id_contacto   && <Campo label="CÉDULA / RIF"    valor={`V-${v.id_contacto}`} />}
+          {v.edad          && <Campo label="EDAD"            valor={`${v.edad} años`} />}
+          {v.sexo          && <Campo label="SEXO"            valor={v.sexo} />}
+          {v.municipio     && <Campo label="MUNICIPIO"       valor={v.municipio} />}
+          {v.sector        && <Campo label="SECTOR"          valor={v.sector} />}
+          {v.cargo         && <Campo label="CARGO"           valor={v.cargo} />}
+          {v.funcion       && <Campo label="FUNCIÓN"         valor={v.funcion} />}
+          {v.actividad_economica && (
+            <Campo label="ACTIVIDAD ECONÓMICA" valor={v.actividad_economica} />
+          )}
         </div>
         {v.motivo_visita && (
-          <div style={{ marginTop: '8px' }}>
+          <div style={{ marginTop: '6px' }}>
             <Campo label="MOTIVO DE VISITA" valor={v.motivo_visita} full />
           </div>
         )}
       </Seccion>
 
-      {/* Observaciones */}
+      {/* ── Observaciones ────────────────────────────────────── */}
       {v.observaciones && (
         <Seccion titulo="OBSERVACIONES">
-          <p style={{ margin: 0, lineHeight: '1.6' }}>{v.observaciones}</p>
+          <p style={{ margin: 0, lineHeight: '1.55' }}>{v.observaciones}</p>
         </Seccion>
       )}
 
-      {/* Firmas */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', marginTop: '32px' }}>
+      {/* ── Firmas ───────────────────────────────────────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', marginTop: '28px' }}>
         {[
           { label: 'Firma del Visitante',   nombre: v.funcionario ?? '___________________' },
           { label: 'Firma del Funcionario', nombre: '___________________' },
@@ -133,14 +152,18 @@ export function ReporteVisita({ v, idx }: { v: VisitaReporte; idx?: number }) {
         ))}
       </div>
 
-      {/* Pie de página */}
+      {/* ── Pie de página ────────────────────────────────────── */}
       <div style={{
-        borderTop: '1px solid #ccc', marginTop: '24px', paddingTop: '8px',
-        display: 'flex', justifyContent: 'space-between',
-        fontSize: '7.5pt', color: '#888',
+        borderTop: '1px solid #ccc',
+        marginTop: '20px',
+        paddingTop: '7px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        fontSize: '7pt',
+        color: '#999',
       }}>
-        <span>Impreso automáticamente el: {fechaImpresion} • Código de verificación ERP: {codVerif}</span>
-        <span>Sistema de Registro de Visitas — INPSASEL GENESAT Portuguesa</span>
+        <span>Impreso el: {fechaImpresion} • Verificación: {codVerif}</span>
+        <span>Página 1 de 1</span>
       </div>
     </div>
   )
@@ -148,10 +171,10 @@ export function ReporteVisita({ v, idx }: { v: VisitaReporte; idx?: number }) {
 
 function Seccion({ titulo, children }: { titulo: string; children: React.ReactNode }) {
   return (
-    <div style={{ marginBottom: '16px' }}>
+    <div style={{ marginBottom: '12px' }}>
       <div style={{
         background: '#1a2744', color: '#fff', fontWeight: 'bold',
-        fontSize: '9pt', padding: '4px 10px', marginBottom: '8px',
+        fontSize: '8.5pt', padding: '3px 10px', marginBottom: '7px',
         letterSpacing: '0.8px',
       }}>
         {titulo}
@@ -164,8 +187,10 @@ function Seccion({ titulo, children }: { titulo: string; children: React.ReactNo
 function Campo({ label, valor, full }: { label: string; valor: string; full?: boolean }) {
   return (
     <div style={{ gridColumn: full ? '1/-1' : undefined }}>
-      <span style={{ fontSize: '7.5pt', color: '#666', fontWeight: 'bold', letterSpacing: '0.5px' }}>{label}: </span>
-      <span style={{ fontSize: '10.5pt' }}>{valor}</span>
+      <span style={{ fontSize: '7pt', color: '#666', fontWeight: 'bold', letterSpacing: '0.4px' }}>
+        {label}:{' '}
+      </span>
+      <span style={{ fontSize: '10pt' }}>{valor}</span>
     </div>
   )
 }
