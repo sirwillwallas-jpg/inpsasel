@@ -37,6 +37,7 @@
   --color-sidebar-ring:            var(--sidebar-ring);
   /* Fuente mono — vincula la variable de Next.js/font al utility font-mono */
   --font-family-mono: var(--font-mono, 'JetBrains Mono', ui-monospace, monospace);
+  --font-family-sans: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   /* Border radius */
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
@@ -120,7 +121,8 @@
   }
 
   body {
-    @apply bg-background text-foreground font-mono;
+    @apply bg-background text-foreground;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   }
 }
 

@@ -1,22 +1,17 @@
 import type { Metadata } from 'next'
 import './globals.css'
-import { JetBrains_Mono } from "next/font/google";
-import { cn } from "@/lib/utils";
+import { JetBrains_Mono } from 'next/font/google'
 
-const jetbrainsMono = JetBrains_Mono({subsets:['latin'],variable:'--font-mono'});
+const jetbrainsMono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mono' })
 
 export const metadata: Metadata = {
   title: 'INPSASEL — Sistema de Visitas',
   description: 'Sistema de gestión de visitas INPSASEL',
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es" className={cn("font-mono", jetbrainsMono.variable)}>
+    <html lang="es" className={jetbrainsMono.variable}>
       <body>{children}</body>
     </html>
   )
