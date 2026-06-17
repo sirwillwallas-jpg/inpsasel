@@ -50,7 +50,15 @@ export function RegistrarVisitaForm() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="ID Contacto" name="id_contacto" type="number" required placeholder="ID en el sistema" />
           <Field label="Funcionario" name="funcionario" placeholder="Funcionario responsable" />
-          <Field label="Sexo" name="sexo" placeholder="Masculino / Femenino" />
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Sexo</label>
+            <select name="sexo" className="input-field">
+              <option value="">Seleccionar...</option>
+              <option value="Masculino">Masculino</option>
+              <option value="Femenino">Femenino</option>
+              <option value="Otro">Otro</option>
+            </select>
+          </div>
           <Field label="Edad" name="edad" type="number" placeholder="Anos" />
           <Field label="Municipio" name="municipio" />
           <Field label="Sector" name="sector" />

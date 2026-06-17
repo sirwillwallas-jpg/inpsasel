@@ -110,7 +110,15 @@ export function ModificarVisitaForm({ visita }: ModificarVisitaFormProps) {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="Funcionario" name="funcionario" defaultValue={visita.funcionario ?? ''} />
-          <Field label="Sexo" name="sexo" defaultValue={visita.sexo ?? ''} />
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Sexo</label>
+            <select name="sexo" defaultValue={visita.sexo ?? ''} className="input-field">
+              <option value="">Seleccionar...</option>
+              <option value="Masculino">Masculino</option>
+              <option value="Femenino">Femenino</option>
+              <option value="Otro">Otro</option>
+            </select>
+          </div>
           <Field label="Edad" name="edad" type="number" defaultValue={visita.edad != null ? String(visita.edad) : ''} />
           <Field label="Municipio" name="municipio" defaultValue={visita.municipio ?? ''} />
           <Field label="Sector" name="sector" defaultValue={visita.sector ?? ''} />
