@@ -49,7 +49,6 @@ export function ReporteVisita({ v }: { v: VisitaReporte }) {
       className="reporte-pagina bg-white mx-auto"
       style={{
         width: '210mm',
-        minHeight: '297mm',
         padding: '14mm 18mm',
         fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
         fontSize: '10.5pt',

@@ -11,7 +11,7 @@ export function BulkReportWizard({ count, desde, hasta }: Props) {
 
   const handleOpen = () => {
     window.open(
-      `/print/reportes?desde=${encodeURIComponent(desde)}&hasta=${encodeURIComponent(hasta)}`,
+      `/reportes?desde=${encodeURIComponent(desde)}&hasta=${encodeURIComponent(hasta)}`,
       '_blank'
     )
   }

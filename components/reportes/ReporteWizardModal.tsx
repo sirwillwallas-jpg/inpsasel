@@ -11,7 +11,7 @@ export function ReporteWizardModal({ codigo, onClose }: Props) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [loaded, setLoaded] = useState(false)
 
-  const src = `/print/reporte?codigo=${encodeURIComponent(codigo)}`
+  const src = `/reporte?codigo=${encodeURIComponent(codigo)}`
 
   const handlePrint = () => {
     iframeRef.current?.contentWindow?.print()
