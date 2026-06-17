@@ -5,7 +5,7 @@ import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import type { EventDropArg, EventClickArg } from '@fullcalendar/core'
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { moverVisitaAction } from '@/actions/visitas'
 
 type Visita = {
@@ -36,10 +36,14 @@ export function CalendarioGrid({ visitas }: Props) {
   const [detalle, setDetalle] = useState<Visita | null>(null)
   const [moviendo, setMoviendo] = useState(false)
 
+  useEffect(() => {
+    console.log('[CalendarioGrid] visitas recibidas:', visitas.length, visitas)
+  }, [visitas])
+
   const eventos = visitas.map((v) => ({
     id:              v.codigo_visita,
     title:           v.codigo_visita,
-    start:           `${v.fecha}T${v.hora}:00`,
+    start:           v.fecha,          // solo fecha, sin hora, para dayGrid
     backgroundColor: ESTATUS_COLOR[v.estatus] ?? '#9ca3af',
     borderColor:     ESTATUS_COLOR[v.estatus] ?? '#9ca3af',
     textColor:       '#ffffff',
@@ -69,8 +73,7 @@ export function CalendarioGrid({ visitas }: Props) {
         </div>
       )}
 
-      {/* Calendario */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 [&_.fc-toolbar-title]:text-lg [&_.fc-toolbar-title]:font-bold [&_.fc-button]:!bg-[#1a2744] [&_.fc-button]:!border-[#1a2744] [&_.fc-button-active]:!bg-[#0f1c36] [&_.fc-day-today]:!bg-blue-50 [&_.fc-event]:cursor-grab [&_.fc-event]:rounded-lg [&_.fc-event]:text-xs [&_.fc-event]:px-1">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
         <FullCalendar
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
           initialView="dayGridMonth"
@@ -81,11 +84,7 @@ export function CalendarioGrid({ visitas }: Props) {
             center: 'title',
             right:  'dayGridMonth,timeGridWeek',
           }}
-          buttonText={{
-            today:        'Hoy',
-            month:        'Mes',
-            week:         'Semana',
-          }}
+          buttonText={{ today: 'Hoy', month: 'Mes', week: 'Semana' }}
           events={eventos}
           editable={true}
           droppable={true}
@@ -97,37 +96,23 @@ export function CalendarioGrid({ visitas }: Props) {
         />
       </div>
 
-      {/* Panel de detalle al hacer click */}
       {detalle && (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-          <div
-            className="px-5 py-3 flex items-center justify-between"
-            style={{ background: '#1a2744' }}
-          >
+          <div className="px-5 py-3 flex items-center justify-between" style={{ background: '#1a2744' }}>
             <span className="text-sm font-semibold text-white">{detalle.codigo_visita}</span>
-            <button
-              onClick={() => setDetalle(null)}
-              className="text-white/60 hover:text-white text-lg leading-none"
-            >
-              ×
-            </button>
+            <button onClick={() => setDetalle(null)} className="text-white/60 hover:text-white text-lg leading-none">×</button>
           </div>
           <div className="px-5 py-4 grid grid-cols-2 gap-3 text-sm">
-            <Info label="Fecha"       value={detalle.fecha} />
-            <Info label="Hora"        value={detalle.hora} />
-            <Info label="Tipo"        value={detalle.tipo_visita} />
-            <Info label="Estatus"     value={detalle.estatus} />
-            {detalle.funcionario  && <Info label="Funcionario"  value={detalle.funcionario} />}
-            {detalle.motivo_visita && (
-              <div className="col-span-2">
-                <Info label="Motivo" value={detalle.motivo_visita} />
-              </div>
-            )}
+            <Info label="Fecha"    value={detalle.fecha} />
+            <Info label="Hora"     value={detalle.hora} />
+            <Info label="Tipo"     value={detalle.tipo_visita} />
+            <Info label="Estatus"  value={detalle.estatus} />
+            {detalle.funcionario   && <Info label="Funcionario"  value={detalle.funcionario} />}
+            {detalle.motivo_visita && <div className="col-span-2"><Info label="Motivo" value={detalle.motivo_visita} /></div>}
           </div>
         </div>
       )}
 
-      {/* Leyenda */}
       <div className="flex flex-wrap gap-3 px-1">
         {Object.entries(ESTATUS_COLOR).map(([label, color]) => (
           <span key={label} className="flex items-center gap-1.5 text-xs text-gray-500">

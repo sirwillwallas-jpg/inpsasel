@@ -1,28 +1,38 @@
 import type { Metadata } from 'next'
+import dynamic from 'next/dynamic'
 import { createClient } from '@/lib/supabase/server'
-import { CalendarioGrid } from '@/components/layout/CalendarioGrid'
 
 export const metadata: Metadata = { title: 'Calendario de Visitas — INPSASEL' }
+
+// FullCalendar usa APIs del browser — desactivar SSR evita crashes silenciosos
+const CalendarioGrid = dynamic(
+  () => import('@/components/layout/CalendarioGrid').then((m) => m.CalendarioGrid),
+  { ssr: false, loading: () => <p className="text-gray-400 text-sm">Cargando calendario...</p> }
+)
 
 export default async function CalendarioPage() {
   const supabase = await createClient()
 
-  // Traer visitas del año actual (suficiente para el calendario mensual/semanal)
   const year = new Date().getFullYear()
-  const { data: visitas } = await supabase
+  const { data: visitas, error } = await supabase
     .from('visitas')
     .select('codigo_visita, fecha, hora, tipo_visita, estatus, motivo_visita, funcionario')
     .gte('fecha', `${year}-01-01`)
     .lte('fecha', `${year}-12-31`)
     .order('fecha', { ascending: true })
 
+  if (error) console.error('[CalendarioPage] Supabase error:', error.message)
+
   return (
     <div className="max-w-5xl mx-auto space-y-4">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Calendario de Visitas</h1>
-        <p className="text-gray-500 text-sm mt-1">
-          Arrastra una visita para cambiar su fecha. Haz clic para ver el detalle.
-        </p>
+      <div className="flex items-baseline justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Calendario de Visitas</h1>
+          <p className="text-gray-500 text-sm mt-1">
+            Arrastra una visita para cambiar su fecha. Haz clic para ver el detalle.
+          </p>
+        </div>
+        <span className="text-xs text-gray-400">{visitas?.length ?? 0} visitas cargadas</span>
       </div>
 
       <CalendarioGrid visitas={visitas ?? []} />
