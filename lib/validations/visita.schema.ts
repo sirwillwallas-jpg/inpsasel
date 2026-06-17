@@ -6,7 +6,8 @@ export const TIPOS_VISITA = [
 ] as const
 
 export const ESTATUS_VISITA = [
-  'Procesada', 'Rechazada', 'En Revisión', 'Otras',
+  'Planificada', 'En Curso', 'Completada', 'Revisada',
+  'Cancelada', 'No Programada', 'Emergencia',
 ] as const
 
 export const FUNCIONES_VISITA = [
@@ -48,11 +49,11 @@ export const registrarVisitaSchema = z.object({
 export type RegistrarVisitaInput = z.infer<typeof registrarVisitaSchema>
 
 export const eliminarVisitaSchema = z.object({
-  codigo_visita: z.string().min(1, 'El codigo de visita es requerido').trim(),
+  codigo_visita: z.string().min(1, 'El código de visita es requerido').trim(),
 })
 
 export const buscarVisitaSchema = z.object({
-  codigo_visita: z.string().min(1, 'El codigo de visita es requerido').trim(),
+  codigo_visita: z.string().min(1, 'El código de visita es requerido').trim(),
 })
 
 export const modificarVisitaSchema = registrarVisitaSchema.extend({
