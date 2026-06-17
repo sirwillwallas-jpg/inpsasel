@@ -6,27 +6,43 @@ export const TIPOS_VISITA = [
 ] as const
 
 export const ESTATUS_VISITA = [
-  'Planificada', 'En Curso', 'Completada', 'Revisada',
-  'Cancelada', 'No Programada', 'Emergencia',
+  'Procesada', 'Rechazada', 'En Revisión', 'Otras',
+] as const
+
+export const FUNCIONES_VISITA = [
+  'Delegado de Prevención',
+  'Comité de Seguridad y Salud Laboral',
+  'Servicio de Salud',
+  'Trabajador',
+  'Otro',
+] as const
+
+export const COORDINACIONES_VISITA = [
+  'Inspecciones',
+  'Educación',
+  'Sanciones',
+  'Salud laboral',
+  'Psicosocial',
+  'Epidemiología',
 ] as const
 
 export const registrarVisitaSchema = z.object({
-  fecha: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato: YYYY-MM-DD'),
-  hora: z.string().regex(/^\d{2}:\d{2}$/, 'Formato: HH:MM'),
-  tipo_visita: z.enum(TIPOS_VISITA),
-  estatus: z.enum(ESTATUS_VISITA),
-  id_contacto: z.coerce.number().int().positive(),
+  fecha:                z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato: YYYY-MM-DD'),
+  hora:                 z.string().regex(/^\d{2}:\d{2}$/, 'Formato: HH:MM'),
+  tipo_visita:          z.enum(TIPOS_VISITA),
+  estatus:              z.enum(ESTATUS_VISITA),
+  id_contacto:          z.coerce.number().int().positive(),
   cordinacion_referida: z.string().optional(),
-  observaciones: z.string().optional(),
-  motivo_visita: z.string().optional(),
-  sexo: z.string().optional(),
-  edad: z.coerce.number().int().positive().optional(),
-  municipio: z.string().optional(),
-  sector: z.string().optional(),
-  cargo: z.string().optional(),
-  funcion: z.string().optional(),
-  actividad_economica: z.string().optional(),
-  funcionario: z.string().optional(),
+  observaciones:        z.string().optional(),
+  motivo_visita:        z.string().optional(),
+  sexo:                 z.string().optional(),
+  edad:                 z.coerce.number().int().positive().optional(),
+  municipio:            z.string().optional(),
+  sector:               z.string().optional(),
+  cargo:                z.string().optional(),
+  funcion:              z.string().optional(),
+  actividad_economica:  z.string().optional(),
+  funcionario:          z.string().optional(),
 })
 
 export type RegistrarVisitaInput = z.infer<typeof registrarVisitaSchema>
