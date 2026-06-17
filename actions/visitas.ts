@@ -156,3 +156,13 @@ export async function moverVisitaAction(
   revalidatePath('/visitas/calendario')
   return { success: `Visita movida al ${nuevaFecha}.` }
 }
+
+export async function fetchVisitaAction(codigoVisita: string) {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('visitas')
+    .select('*')
+    .eq('codigo_visita', codigoVisita.trim())
+    .single()
+  return data ?? null
+}

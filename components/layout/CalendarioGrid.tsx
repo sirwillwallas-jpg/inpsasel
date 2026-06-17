@@ -5,22 +5,23 @@ import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import type { EventDropArg, EventClickArg } from '@fullcalendar/core'
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback } from 'react'
 import { moverVisitaAction } from '@/actions/visitas'
+import { ReporteWizardModal } from '@/components/reportes/ReporteWizardModal'
 
-type Visita = {
+// Acepta todos los campos de la tabla para poder renderizar el reporte completo
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Visita = Record<string, any> & {
   codigo_visita: string
   fecha: string
   hora: string
   tipo_visita: string
   estatus: string
-  motivo_visita: string | null
-  funcionario: string | null
+  motivo_visita?: string | null
+  funcionario?: string | null
 }
 
-type Props = {
-  visitas: Visita[]
-}
+type Props = { visitas: Visita[] }
 
 const ESTATUS_COLOR: Record<string, string> = {
   'Planificada':   '#3b82f6',
@@ -33,17 +34,14 @@ const ESTATUS_COLOR: Record<string, string> = {
 }
 
 export function CalendarioGrid({ visitas }: Props) {
-  const [detalle, setDetalle] = useState<Visita | null>(null)
-  const [moviendo, setMoviendo] = useState(false)
-
-  useEffect(() => {
-    console.log('[CalendarioGrid] visitas recibidas:', visitas.length, visitas)
-  }, [visitas])
+  const [detalle, setDetalle]         = useState<Visita | null>(null)
+  const [moviendo, setMoviendo]       = useState(false)
+  const [wizardCodigo, setWizardCodigo] = useState<string | null>(null)
 
   const eventos = visitas.map((v) => ({
     id:              v.codigo_visita,
-    title:           v.codigo_visita,
-    start:           v.fecha,          // solo fecha, sin hora, para dayGrid
+    title:           `${v.hora?.slice(0, 5)} ${v.tipo_visita}`,
+    start:           v.fecha,
     backgroundColor: ESTATUS_COLOR[v.estatus] ?? '#9ca3af',
     borderColor:     ESTATUS_COLOR[v.estatus] ?? '#9ca3af',
     textColor:       '#ffffff',
@@ -69,7 +67,7 @@ export function CalendarioGrid({ visitas }: Props) {
     <div className="space-y-4">
       {moviendo && (
         <div className="text-sm text-blue-600 bg-blue-50 border border-blue-200 rounded-lg px-4 py-2">
-          Actualizando fecha...
+          Actualizando fecha…
         </div>
       )}
 
@@ -96,33 +94,44 @@ export function CalendarioGrid({ visitas }: Props) {
         />
       </div>
 
+      {/* Panel de detalle */}
       {detalle && (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="px-5 py-3 flex items-center justify-between" style={{ background: '#1a2744' }}>
             <span className="text-sm font-semibold text-white">{detalle.codigo_visita}</span>
             <div className="flex items-center gap-3">
-              <a
-                href={`/visitas/reporte?codigo=${detalle.codigo_visita}`}
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                onClick={() => setWizardCodigo(detalle.codigo_visita)}
                 className="text-xs text-blue-300 hover:text-white font-semibold underline"
               >
-                Imprimir
-              </a>
+                Ver Reporte
+              </button>
               <button onClick={() => setDetalle(null)} className="text-white/60 hover:text-white text-lg leading-none">×</button>
             </div>
           </div>
           <div className="px-5 py-4 grid grid-cols-2 gap-3 text-sm">
             <Info label="Fecha"    value={detalle.fecha} />
-            <Info label="Hora"     value={detalle.hora} />
+            <Info label="Hora"     value={detalle.hora?.slice(0, 5)} />
             <Info label="Tipo"     value={detalle.tipo_visita} />
             <Info label="Estatus"  value={detalle.estatus} />
             {detalle.funcionario   && <Info label="Funcionario"  value={detalle.funcionario} />}
-            {detalle.motivo_visita && <div className="col-span-2"><Info label="Motivo" value={detalle.motivo_visita} /></div>}
+            {detalle.motivo_visita && (
+              <div className="col-span-2"><Info label="Motivo" value={detalle.motivo_visita} /></div>
+            )}
+          </div>
+          <div className="px-5 pb-4">
+            <button
+              onClick={() => setWizardCodigo(detalle.codigo_visita)}
+              className="w-full py-2.5 rounded-xl text-sm font-semibold text-white shadow transition-colors hover:opacity-90"
+              style={{ background: '#1a2744' }}
+            >
+              📄 Ver Reporte / Descargar PDF
+            </button>
           </div>
         </div>
       )}
 
+      {/* Leyenda de colores */}
       <div className="flex flex-wrap gap-3 px-1">
         {Object.entries(ESTATUS_COLOR).map(([label, color]) => (
           <span key={label} className="flex items-center gap-1.5 text-xs text-gray-500">
@@ -131,6 +140,14 @@ export function CalendarioGrid({ visitas }: Props) {
           </span>
         ))}
       </div>
+
+      {/* Wizard modal */}
+      {wizardCodigo && (
+        <ReporteWizardModal
+          codigo={wizardCodigo}
+          onClose={() => setWizardCodigo(null)}
+        />
+      )}
     </div>
   )
 }
