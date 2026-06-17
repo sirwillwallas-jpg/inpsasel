@@ -177,23 +177,3 @@
   }
 }
 
-  /* Resetear layout del dashboard */
-  body, html { background: white !important; margin: 0 !important; padding: 0 !important; }
-  .flex.min-h-screen { display: block !important; }
-  main { padding: 0 !important; margin: 0 !important; all: unset !important; display: block !important; }
-
-  /* Cada reporte ocupa su propia página */
-  .reporte-pagina {
-    box-shadow: none !important;
-    margin: 0 !important;
-    padding: 14mm 18mm !important;
-    page-break-after: always;
-    break-after: page;
-    width: 100% !important;
-    min-height: unset !important;
-  }
-  .reporte-pagina:last-child {
-    page-break-after: avoid;
-    break-after: avoid;
-  }
-}
