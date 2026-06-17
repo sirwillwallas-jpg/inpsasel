@@ -47,7 +47,6 @@ export default async function ReportesMasivosPage({ searchParams }: PageProps) {
           {visitas.length > 0 && desde && hasta && (
             <BulkReportWizard
               count={visitas.length}
-              filename={`reportes-${desde}-a-${hasta}.pdf`}
               desde={desde}
               hasta={hasta}
             />

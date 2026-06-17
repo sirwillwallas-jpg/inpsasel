@@ -2,12 +2,11 @@
 
 interface Props {
   count: number
-  filename: string
   desde: string
   hasta: string
 }
 
-export function BulkReportWizard({ count, filename: _filename, desde, hasta }: Props) {
+export function BulkReportWizard({ count, desde, hasta }: Props) {
   const handlePrint = () => window.print()
 
   const handleOpen = () => {
