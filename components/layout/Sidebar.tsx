@@ -18,7 +18,6 @@ const NAV = {
   ],
   REPORTES: [
     { href: '/visitas/calendario', label: 'Calendario de visitas' },
-    { href: '/visitas/reportes',   label: 'Reportes Masivos' },
   ],
 }
 

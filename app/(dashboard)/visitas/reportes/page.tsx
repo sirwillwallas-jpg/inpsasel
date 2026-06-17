@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { ReporteVisita } from '@/components/reportes/ReporteVisita'
 import { ReportesForm } from '@/components/reportes/ReportesForm'
-import { PrintButton } from '@/components/reportes/PrintButton'
+import { ReportActionButtons } from '@/components/reportes/ReportActionButtons'
 
 export const metadata: Metadata = { title: 'Reportes Masivos — INPSASEL' }
 
@@ -30,16 +30,25 @@ export default async function ReportesMasivosPage({ searchParams }: PageProps) {
     else visitas = data ?? []
   }
 
+  const filename = desde && hasta
+    ? `reportes-${desde}-a-${hasta}.pdf`
+    : 'reportes-inpsasel.pdf'
+
   return (
     <>
-      {/* Barra de acción — oculta al imprimir */}
+      {/* Barra de acción */}
       <div className="no-print fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 shadow-sm px-6 py-3 flex flex-wrap items-center gap-4">
-        <span className="text-sm font-semibold text-gray-700">Reportes Masivos</span>
-
+        <a href="/visitas/calendario" className="text-sm text-gray-500 hover:text-gray-800 transition-colors shrink-0">
+          ← Calendario
+        </a>
         <ReportesForm desde={desde} hasta={hasta} total={visitas.length} />
-
         {visitas.length > 0 && (
-          <div className="ml-auto"><PrintButton label={`Imprimir ${visitas.length} reporte${visitas.length !== 1 ? 's' : ''} / Guardar PDF`} /></div>
+          <div className="ml-auto shrink-0">
+            <ReportActionButtons
+              filename={filename}
+              label={`${visitas.length} reporte${visitas.length !== 1 ? 's' : ''}`}
+            />
+          </div>
         )}
       </div>
 
@@ -48,22 +57,19 @@ export default async function ReportesMasivosPage({ searchParams }: PageProps) {
         {error && (
           <p className="no-print text-red-600 text-sm px-6 py-4">{error}</p>
         )}
-
         {!desde && !hasta && (
           <div className="no-print max-w-md mx-auto mt-20 text-center text-gray-400">
             <p className="text-lg font-semibold mb-2">Selecciona un rango de fechas</p>
-            <p className="text-sm">Usa el formulario de arriba para filtrar y luego descarga todos los reportes de ese período.</p>
+            <p className="text-sm">Usa el formulario de arriba para filtrar y descargar todos los reportes del período.</p>
           </div>
         )}
-
         {visitas.length === 0 && desde && hasta && !error && (
           <div className="no-print max-w-md mx-auto mt-20 text-center text-gray-400">
             <p className="text-lg font-semibold">Sin visitas en ese período</p>
           </div>
         )}
-
-        {visitas.map((v, idx) => (
-          <ReporteVisita key={v.codigo_visita} v={v} idx={idx} />
+        {visitas.map((v) => (
+          <ReporteVisita key={v.codigo_visita} v={v} />
         ))}
       </div>
     </>
