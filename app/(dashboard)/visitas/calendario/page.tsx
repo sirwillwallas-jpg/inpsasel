@@ -1,14 +1,8 @@
 import type { Metadata } from 'next'
-import dynamic from 'next/dynamic'
 import { createClient } from '@/lib/supabase/server'
+import { CalendarioWrapper } from '@/components/layout/CalendarioWrapper'
 
 export const metadata: Metadata = { title: 'Calendario de Visitas — INPSASEL' }
-
-// FullCalendar usa APIs del browser — desactivar SSR evita crashes silenciosos
-const CalendarioGrid = dynamic(
-  () => import('@/components/layout/CalendarioGrid').then((m) => m.CalendarioGrid),
-  { ssr: false, loading: () => <p className="text-gray-400 text-sm">Cargando calendario...</p> }
-)
 
 export default async function CalendarioPage() {
   const supabase = await createClient()
@@ -21,7 +15,7 @@ export default async function CalendarioPage() {
     .lte('fecha', `${year}-12-31`)
     .order('fecha', { ascending: true })
 
-  if (error) console.error('[CalendarioPage] Supabase error:', error.message)
+  if (error) console.error('[CalendarioPage]', error.message)
 
   return (
     <div className="max-w-5xl mx-auto space-y-4">
@@ -35,7 +29,7 @@ export default async function CalendarioPage() {
         <span className="text-xs text-gray-400">{visitas?.length ?? 0} visitas cargadas</span>
       </div>
 
-      <CalendarioGrid visitas={visitas ?? []} />
+      <CalendarioWrapper visitas={visitas ?? []} />
     </div>
   )
 }
