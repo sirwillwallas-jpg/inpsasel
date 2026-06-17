@@ -85,8 +85,7 @@ export function RegistrarVisitaForm() {
             label="Cédula / RIF"
             name="id_contacto"
             type="number"
-            required
-            placeholder="Documento de identidad"
+            placeholder="Documento de identidad (opcional)"
           />
           <Field
             label="Teléfono"
