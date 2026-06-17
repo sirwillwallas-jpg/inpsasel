@@ -270,7 +270,7 @@ export type Database = {
           estatus: Database["public"]["Enums"]["estatus_enum"]
           cordinacion_referida: string | null
           observaciones: string | null
-          id_contacto: number
+          id_contacto: number | null
           id_usuario: number | null
           id_orden: number | null
           sexo: string | null
@@ -292,7 +292,7 @@ export type Database = {
           estatus: Database["public"]["Enums"]["estatus_enum"]
           cordinacion_referida?: string | null
           observaciones?: string | null
-          id_contacto: number
+          id_contacto?: number | null
           id_usuario?: number | null
           id_orden?: number | null
           sexo?: string | null

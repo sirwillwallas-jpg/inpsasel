@@ -32,7 +32,7 @@ export const registrarVisitaSchema = z.object({
   hora:                 z.string().regex(/^\d{2}:\d{2}$/, 'Formato: HH:MM'),
   tipo_visita:          z.enum(TIPOS_VISITA),
   estatus:              z.enum(ESTATUS_VISITA),
-  id_contacto:          z.coerce.number().int().positive(),
+  id_contacto:          z.coerce.number().int().positive().optional(),
   cordinacion_referida: z.string().optional(),
   observaciones:        z.string().optional(),
   motivo_visita:        z.string().optional(),

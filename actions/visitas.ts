@@ -53,12 +53,13 @@ export async function registrarVisitaAction(
   const { error } = await supabase.from('visitas').insert({
     ...parsed.data,
     codigo_visita,
+    id_contacto: parsed.data.id_contacto ?? null,
     id_usuario: idUsuario,
   })
 
   if (error) {
     console.error('registrarVisita:', error.message)
-    return { error: 'No se pudo registrar la visita. Intenta nuevamente.' }
+    return { error: error.message }
   }
 
   revalidatePath('/visitas/hoy')
