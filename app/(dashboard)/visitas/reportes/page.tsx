@@ -30,29 +30,34 @@ export default async function ReportesMasivosPage({ searchParams }: PageProps) {
     else visitas = data ?? []
   }
 
-  const filename = desde && hasta
-    ? `reportes-${desde}-a-${hasta}.pdf`
-    : 'reportes-inpsasel.pdf'
-
   return (
     <div className="max-w-5xl mx-auto space-y-6">
-      {/* Panel wizard — siempre visible, no imprime */}
+      {/* Panel de control */}
       <div className="no-print">
         <div className="flex items-baseline gap-3 mb-4">
           <h1 className="text-2xl font-bold text-gray-900">Reportes Masivos</h1>
-          <a href="/visitas/calendario" className="text-sm text-gray-400 hover:text-gray-600">← Calendario</a>
+          <a href="/visitas/calendario" className="text-sm text-gray-400 hover:text-gray-600">
+            ← Calendario
+          </a>
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 space-y-4">
           <ReportesForm desde={desde} hasta={hasta} total={visitas.length} />
 
-          {visitas.length > 0 && (
-            <BulkReportWizard count={visitas.length} filename={filename} />
+          {visitas.length > 0 && desde && hasta && (
+            <BulkReportWizard
+              count={visitas.length}
+              filename={`reportes-${desde}-a-${hasta}.pdf`}
+              desde={desde}
+              hasta={hasta}
+            />
           )}
         </div>
 
         {error && (
-          <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3">{error}</p>
+          <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3 mt-4">
+            {error}
+          </p>
         )}
 
         {!desde && !hasta && (
@@ -69,12 +74,14 @@ export default async function ReportesMasivosPage({ searchParams }: PageProps) {
         )}
       </div>
 
-      {/* Reportes para impresión */}
-      <div className="print:pt-0 print:bg-white">
-        {visitas.map((v) => (
-          <ReporteVisita key={v.codigo_visita} v={v} />
-        ))}
-      </div>
+      {/* Reportes — visibles en pantalla y al imprimir desde esta página */}
+      {visitas.length > 0 && (
+        <div>
+          {visitas.map((v) => (
+            <ReporteVisita key={v.codigo_visita} v={v} />
+          ))}
+        </div>
+      )}
     </div>
   )
 }

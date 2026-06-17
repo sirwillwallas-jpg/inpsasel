@@ -156,13 +156,26 @@
 }
 /* ── Print styles ─────────────────────────────────────────── */
 @media print {
-  /* Ocultar toda la UI del dashboard */
-  .no-print,
-  aside,
-  nav,
-  header,
-  [class*="fixed"],
-  [class*="sidebar"] { display: none !important; }
+  /* Ocultar UI del dashboard */
+  .no-print { display: none !important; }
+  aside     { display: none !important; }
+  nav       { display: none !important; }
+
+  /* Fondo blanco, sin márgenes extra */
+  body, html { background: white !important; }
+
+  /* Cada reporte en su propia hoja */
+  .reporte-pagina {
+    box-shadow: none !important;
+    margin: 0 !important;
+    page-break-after: always;
+    break-after: page;
+  }
+  .reporte-pagina:last-child {
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+}
 
   /* Resetear layout del dashboard */
   body, html { background: white !important; margin: 0 !important; padding: 0 !important; }

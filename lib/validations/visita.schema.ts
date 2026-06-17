@@ -29,7 +29,7 @@ export const COORDINACIONES_VISITA = [
 
 export const registrarVisitaSchema = z.object({
   fecha:                z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato: YYYY-MM-DD'),
-  hora:                 z.string().regex(/^\d{2}:\d{2}$/, 'Formato: HH:MM'),
+  hora:                 z.preprocess((v) => typeof v === 'string' ? v.slice(0, 5) : v, z.string().regex(/^\d{2}:\d{2}$/, 'Formato: HH:MM')),
   tipo_visita:          z.enum(TIPOS_VISITA),
   estatus:              z.enum(ESTATUS_VISITA),
   id_contacto:          z.coerce.number().int().positive().optional(),
