@@ -137,3 +137,22 @@ export async function modificarVisitaAction(
   revalidatePath('/visitas/hoy')
   return { success: `Visita ${codigo_visita} actualizada correctamente.` }
 }
+
+export async function moverVisitaAction(
+  codigoVisita: string,
+  nuevaFecha: string
+): Promise<ActionState> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'No autenticado.' }
+
+  const { error } = await supabase
+    .from('visitas')
+    .update({ fecha: nuevaFecha })
+    .eq('codigo_visita', codigoVisita)
+
+  if (error) return { error: error.message }
+
+  revalidatePath('/visitas/calendario')
+  return { success: `Visita movida al ${nuevaFecha}.` }
+}
