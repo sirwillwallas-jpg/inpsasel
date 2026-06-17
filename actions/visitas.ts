@@ -12,20 +12,29 @@ import {
 
 export type ActionState = { error: string } | { success: string } | null
 
-/** Genera un codigo unico: VIS-YYYYMMDD-NNN. El contador reinicia cada dia. */
+/** Genera un codigo unico: VIS-YYYYMMDD-NNN. El contador se basa en el maximo existente. */
 async function generarCodigoVisita(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   supabase: any,
   fecha: string
 ): Promise<string> {
-  const { count } = await supabase
-    .from('visitas')
-    .select('*', { count: 'exact', head: true })
-    .eq('fecha', fecha)
-
-  const numero = String((count ?? 0) + 1).padStart(3, '0')
   const fechaStr = fecha.replace(/-/g, '')
-  return `VIS-${fechaStr}-${numero}`
+  const prefijo  = `VIS-${fechaStr}-`
+
+  const { data } = await supabase
+    .from('visitas')
+    .select('codigo_visita')
+    .like('codigo_visita', `${prefijo}%`)
+    .order('codigo_visita', { ascending: false })
+    .limit(1)
+
+  let siguiente = 1
+  if (data && data.length > 0) {
+    const sufijo = parseInt(data[0].codigo_visita.replace(prefijo, ''), 10)
+    if (!isNaN(sufijo)) siguiente = sufijo + 1
+  }
+
+  return `${prefijo}${String(siguiente).padStart(3, '0')}`
 }
 
 export async function registrarVisitaAction(
