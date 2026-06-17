@@ -36,14 +36,6 @@ function fmtHora(h: string) {
 }
 
 export function ReporteVisita({ v }: { v: VisitaReporte }) {
-  const fechaImpresion = new Date().toLocaleString('es-VE', {
-    day: '2-digit', month: '2-digit', year: 'numeric',
-    hour: '2-digit', minute: '2-digit', second: '2-digit',
-  })
-  const codVerif = `ERP-V-${Math.abs(
-    v.codigo_visita.split('').reduce((a, c) => a + c.charCodeAt(0), 0) * 997
-  ).toString().slice(0, 6)}`
-
   return (
     <div
       className="reporte-pagina bg-white mx-auto"
@@ -136,34 +128,6 @@ export function ReporteVisita({ v }: { v: VisitaReporte }) {
         </Seccion>
       )}
 
-      {/* ── Firmas ───────────────────────────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', marginTop: '28px' }}>
-        {[
-          { label: 'Firma del Visitante',   nombre: v.funcionario ?? '___________________' },
-          { label: 'Firma del Funcionario', nombre: '___________________' },
-        ].map(({ label, nombre }) => (
-          <div key={label} style={{ textAlign: 'center' }}>
-            <div style={{ borderTop: '1px solid #333', paddingTop: '6px', marginTop: '36px' }}>
-              <div style={{ fontSize: '9pt', color: '#444' }}>{nombre}</div>
-              <div style={{ fontSize: '8pt', color: '#888', marginTop: '2px' }}>{label}</div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* ── Pie de página ────────────────────────────────────── */}
-      <div style={{
-        borderTop: '1px solid #ccc',
-        marginTop: '20px',
-        paddingTop: '7px',
-        display: 'flex',
-        justifyContent: 'space-between',
-        fontSize: '7pt',
-        color: '#999',
-      }}>
-        <span>Impreso el: {fechaImpresion} • Verificación: {codVerif}</span>
-        <span>Página 1 de 1</span>
-      </div>
     </div>
   )
 }
