@@ -19,8 +19,12 @@ export default async function PrintReportePage({ searchParams }: PageProps) {
 
   if (!v) notFound()
 
+  // Deriva el código del reporte del código de visita: VIS-YYYYMMDD-NNN → RPT-YYYYMMDD-NNN
+  const codigoReporte = v.codigo_visita.replace(/^VIS-/, 'RPT-')
+
   return (
     <div style={{ background: '#f3f4f6', minHeight: '100vh' }}>
+      <title>{codigoReporte}</title>
       {/* Barra de acciones — solo visible en pantalla */}
       <div
         id="print-actions"

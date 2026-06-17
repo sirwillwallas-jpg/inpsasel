@@ -34,11 +34,18 @@ const ESTATUS_COLOR: Record<string, string> = {
 }
 
 export function CalendarioGrid({ visitas }: Props) {
-  const [detalle, setDetalle]         = useState<Visita | null>(null)
-  const [moviendo, setMoviendo]       = useState(false)
+  const [detalle, setDetalle]           = useState<Visita | null>(null)
+  const [moviendo, setMoviendo]         = useState(false)
   const [wizardCodigo, setWizardCodigo] = useState<string | null>(null)
+  const [filtro, setFiltro]             = useState('')
 
-  const eventos = visitas.map((v) => ({
+  const visitasFiltradas = filtro.trim()
+    ? visitas.filter((v) =>
+        v.codigo_visita.toLowerCase().includes(filtro.trim().toLowerCase())
+      )
+    : visitas
+
+  const eventos = visitasFiltradas.map((v) => ({
     id:              v.codigo_visita,
     title:           `${v.hora?.slice(0, 5)} ${v.tipo_visita}`,
     start:           v.fecha,
@@ -65,6 +72,35 @@ export function CalendarioGrid({ visitas }: Props) {
 
   return (
     <div className="space-y-4">
+      {/* Buscador por código de visita */}
+      <div className="flex items-center gap-3">
+        <div className="relative flex-1 max-w-xs">
+          <span className="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none text-sm">
+            🔍
+          </span>
+          <input
+            type="text"
+            value={filtro}
+            onChange={(e) => setFiltro(e.target.value)}
+            placeholder="Buscar por código (ej. VIS-20260617-001)"
+            className="w-full pl-9 pr-4 py-2 rounded-xl border border-gray-200 text-sm text-gray-800 bg-white shadow-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition"
+          />
+        </div>
+        {filtro && (
+          <button
+            onClick={() => setFiltro('')}
+            className="text-xs text-gray-500 hover:text-gray-800 underline"
+          >
+            Limpiar
+          </button>
+        )}
+        {filtro && (
+          <span className="text-xs text-gray-400">
+            {visitasFiltradas.length} resultado{visitasFiltradas.length !== 1 ? 's' : ''}
+          </span>
+        )}
+      </div>
+
       {moviendo && (
         <div className="text-sm text-blue-600 bg-blue-50 border border-blue-200 rounded-lg px-4 py-2">
           Actualizando fecha…
@@ -80,9 +116,9 @@ export function CalendarioGrid({ visitas }: Props) {
           headerToolbar={{
             left:   'prev,next today',
             center: 'title',
-            right:  'dayGridMonth,timeGridWeek',
+            right:  'dayGridMonth,timeGridWeek,timeGridDay',
           }}
-          buttonText={{ today: 'Hoy', month: 'Mes', week: 'Semana' }}
+          buttonText={{ today: 'Hoy', month: 'Mes', week: 'Semana', day: 'Día' }}
           events={eventos}
           editable={true}
           droppable={true}

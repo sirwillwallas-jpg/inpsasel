@@ -21,8 +21,12 @@ export default async function PrintReportesMasivosPage({ searchParams }: PagePro
 
   if (error || !visitas?.length) notFound()
 
+  // Código de archivo: RPT-YYYYMMDD-YYYYMMDD (rango de fechas sin guiones)
+  const codigoArchivo = `RPT-${desde.replace(/-/g, '')}-${hasta.replace(/-/g, '')}`
+
   return (
     <div style={{ background: '#f3f4f6', minHeight: '100vh' }}>
+      <title>{codigoArchivo}</title>
       {/* Barra de acciones */}
       <div
         id="print-actions"
