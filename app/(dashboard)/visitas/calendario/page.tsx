@@ -11,7 +11,7 @@ export default async function CalendarioPage() {
   const year = new Date().getFullYear()
   const { data: visitas, error } = await supabase
     .from('visitas')
-    .select('codigo_visita, fecha, hora, tipo_visita, estatus, motivo_visita, funcionario')
+    .select('codigo_visita, fecha, hora, tipo_visita, estatus, motivo_visita, funcionario, id_contacto')
     .gte('fecha', `${year}-01-01`)
     .lte('fecha', `${year}-12-31`)
     .order('fecha', { ascending: true })
