@@ -1,0 +1,48 @@
+name: Respaldo Automático — Supabase PostgreSQL
+
+on:
+  schedule:
+    - cron: '0 3 * * *'   # Todos los días a las 3:00 AM UTC
+  workflow_dispatch:        # Disparo manual desde la interfaz de GitHub
+
+jobs:
+  backup:
+    name: pg_dump → Artefacto
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Garantizar que pg_dump esté disponible
+      - name: Instalar cliente PostgreSQL
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends postgresql-client
+
+      # 2. Generar el volcado con nombre fechado
+      - name: Ejecutar pg_dump
+        env:
+          PGPASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          DATE=$(date -u '+%Y-%m-%d')
+          FILENAME="backup_inpsasel_${DATE}.sql"
+
+          pg_dump \
+            --host="${{ secrets.SUPABASE_DB_HOST }}" \
+            --port=5432 \
+            --username="${{ secrets.SUPABASE_DB_USER }}" \
+            --dbname="${{ secrets.SUPABASE_DB_NAME }}" \
+            --clean \
+            --if-exists \
+            --quote-all-identifiers \
+            --format=plain \
+            --file="${FILENAME}"
+
+          echo "BACKUP_FILE=${FILENAME}" >> "$GITHUB_ENV"
+
+      # 3. Subir el archivo como artefacto del workflow (retención: 30 días)
+      - name: Subir artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: backup-${{ github.run_number }}-${{ github.run_attempt }}
+          path: ${{ env.BACKUP_FILE }}
+          retention-days: 30
+          if-no-files-found: error
