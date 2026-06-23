@@ -46,7 +46,7 @@ jobs:
 
       # 3. Subir el archivo como artefacto del workflow (retención: 30 días)
       - name: Subir artefacto
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: backup-${{ github.run_number }}-${{ github.run_attempt }}
           path: ${{ env.BACKUP_FILE }}
