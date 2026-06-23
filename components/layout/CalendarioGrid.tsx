@@ -41,7 +41,7 @@ export function CalendarioGrid({ visitas }: Props) {
 
   const visitasFiltradas = filtro.trim()
     ? visitas.filter((v) =>
-        v.codigo_visita.toLowerCase().includes(filtro.trim().toLowerCase())
+        String(v.id_contacto ?? '').includes(filtro.trim())
       )
     : visitas
 
@@ -82,7 +82,7 @@ export function CalendarioGrid({ visitas }: Props) {
             type="text"
             value={filtro}
             onChange={(e) => setFiltro(e.target.value)}
-            placeholder="Buscar por código (ej. VIS-20260617-001)"
+            placeholder="Buscar por cédula (ej. 12345678)"
             className="w-full pl-9 pr-4 py-2 rounded-xl border border-gray-200 text-sm text-gray-800 bg-white shadow-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition"
           />
         </div>
