@@ -37,6 +37,36 @@ async function generarCodigoVisita(
   return `${prefijo}${String(siguiente).padStart(3, '0')}`
 }
 
+async function upsertContacto(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  c: {
+    cedula_rif: string
+    nombre_completo?: string
+    telefono?: string
+    nombre_entidad?: string
+  }
+): Promise<number | null> {
+  const { data, error } = await supabase
+    .from('contactos')
+    .upsert({
+      cedula_rif: c.cedula_rif,
+      nombre_completo: c.nombre_completo ?? null,
+      telefono: c.telefono ?? null,
+      nombre_entidad: c.nombre_entidad || 'No especificada',
+      tipo_contacto: 'Individual',
+    }, { onConflict: 'cedula_rif' })
+    .select('id_contacto')
+    .single()
+
+  if (error || !data) {
+    console.error('upsertContacto:', error?.message)
+    return null
+  }
+
+  return data.id_contacto as number
+}
+
 export async function registrarVisitaAction(
   _prevState: ActionState,
   formData: FormData
@@ -57,12 +87,31 @@ export async function registrarVisitaAction(
     ? Number(user.user_metadata.id_usuario)
     : null
 
-  const codigo_visita = await generarCodigoVisita(supabase, parsed.data.fecha)
+  const {
+    cedula_rif,
+    nombre_completo,
+    telefono,
+    nombre_entidad,
+    ...visitaData
+  } = parsed.data
+
+  const id_contacto = await upsertContacto(supabase, {
+    cedula_rif,
+    nombre_completo,
+    telefono,
+    nombre_entidad,
+  })
+
+  if (!id_contacto) {
+    return { error: 'No se pudo guardar el contacto del visitante.' }
+  }
+
+  const codigo_visita = await generarCodigoVisita(supabase, visitaData.fecha)
 
   const { error } = await supabase.from('visitas').insert({
-    ...parsed.data,
+    ...visitaData,
     codigo_visita,
-    id_contacto: parsed.data.id_contacto ?? null,
+    id_contacto,
     id_usuario: idUsuario,
   })
 
@@ -131,11 +180,32 @@ export async function modificarVisitaAction(
     return { error: firstError }
   }
 
-  const { codigo_visita, ...updateData } = parsed.data
+  const {
+    codigo_visita,
+    cedula_rif,
+    nombre_completo,
+    telefono,
+    nombre_entidad,
+    ...visitaData
+  } = parsed.data
+
+  const id_contacto = await upsertContacto(supabase, {
+    cedula_rif,
+    nombre_completo,
+    telefono,
+    nombre_entidad,
+  })
+
+  if (!id_contacto) {
+    return { error: 'No se pudo guardar el contacto del visitante.' }
+  }
 
   const { error } = await supabase
     .from('visitas')
-    .update(updateData)
+    .update({
+      ...visitaData,
+      id_contacto,
+    })
     .eq('codigo_visita', codigo_visita)
 
   if (error) {
@@ -170,7 +240,7 @@ export async function fetchVisitaAction(codigoVisita: string) {
   const supabase = await createClient()
   const { data } = await supabase
     .from('visitas')
-    .select('*')
+    .select('*, contactos(*)')
     .eq('codigo_visita', codigoVisita.trim())
     .single()
   return data ?? null

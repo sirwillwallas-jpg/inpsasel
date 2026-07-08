@@ -13,7 +13,7 @@ export default async function PrintReportePage({ searchParams }: PageProps) {
   const supabase = await createClient()
   const { data: v } = await supabase
     .from('visitas')
-    .select('*')
+    .select('*, contactos(*)')
     .eq('codigo_visita', codigo.trim())
     .single()
 

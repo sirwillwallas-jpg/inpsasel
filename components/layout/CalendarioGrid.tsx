@@ -41,7 +41,7 @@ export function CalendarioGrid({ visitas }: Props) {
 
   const visitasFiltradas = filtro.trim()
     ? visitas.filter((v) =>
-        String(v.id_contacto ?? '').includes(filtro.trim())
+        String(v.contactos?.cedula_rif ?? '').includes(filtro.trim())
       )
     : visitas
 

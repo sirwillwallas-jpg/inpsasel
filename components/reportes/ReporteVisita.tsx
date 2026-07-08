@@ -19,6 +19,12 @@ interface VisitaReporte {
   funcionario?: string | null
   id_contacto?: number | null
   id_orden?: number | null
+  contactos?: {
+    cedula_rif?: string | null
+    nombre_completo?: string | null
+    telefono?: string | null
+    nombre_entidad?: string | null
+  } | null
 }
 
 function fmtFecha(iso: string) {
@@ -102,8 +108,10 @@ export function ReporteVisita({ v }: { v: VisitaReporte }) {
       {/* ── Datos del visitante ──────────────────────────────── */}
       <Seccion titulo="DATOS DEL VISITANTE">
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 24px' }}>
-          {v.funcionario   && <Campo label="NOMBRE COMPLETO" valor={v.funcionario} />}
-          {v.id_contacto   && <Campo label="CÉDULA / RIF"    valor={`V-${v.id_contacto}`} />}
+          {v.contactos?.nombre_completo && <Campo label="NOMBRE COMPLETO" valor={v.contactos.nombre_completo} />}
+          {v.contactos?.cedula_rif && <Campo label="CÉDULA / RIF" valor={v.contactos.cedula_rif} />}
+          {v.contactos?.telefono && <Campo label="TELÉFONO" valor={v.contactos.telefono} />}
+          {v.contactos?.nombre_entidad && <Campo label="ENTIDAD" valor={v.contactos.nombre_entidad} />}
           {v.edad          && <Campo label="EDAD"            valor={`${v.edad} años`} />}
           {v.sexo          && <Campo label="SEXO"            valor={v.sexo} />}
           {v.municipio     && <Campo label="MUNICIPIO"       valor={v.municipio} />}
@@ -113,6 +121,7 @@ export function ReporteVisita({ v }: { v: VisitaReporte }) {
           {v.actividad_economica && (
             <Campo label="ACTIVIDAD ECONÓMICA" valor={v.actividad_economica} />
           )}
+          {v.funcionario && <Campo label="FUNCIONARIO" valor={v.funcionario} />}
         </div>
         {v.motivo_visita && (
           <div style={{ marginTop: '6px' }}>

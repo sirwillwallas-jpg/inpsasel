@@ -11,6 +11,9 @@ import {
 import type { Database } from '@/types/database'
 
 type VisitaRow = Database['public']['Tables']['visitas']['Row']
+type ContactoRow = Database['public']['Tables']['contactos']['Row']
+
+export type VisitaConContacto = VisitaRow & { contactos: ContactoRow | null }
 
 const MUNICIPIOS_PORTUGUESA = [
   'Agua Blanca', 'Araure', 'Esteller', 'Guanare', 'Guanarito',
@@ -19,8 +22,9 @@ const MUNICIPIOS_PORTUGUESA = [
   'Sucre', 'Turén',
 ] as const
 
-export function ModificarVisitaForm({ visita }: { visita: VisitaRow }) {
+export function ModificarVisitaForm({ visita }: { visita: VisitaConContacto }) {
   const [state, action, isPending] = useActionState(modificarVisitaAction, null)
+  const contacto = visita.contactos
 
   const [mostrarObservaciones, setMostrarObservaciones] = useState(
     Boolean(visita.observaciones)
@@ -60,9 +64,9 @@ export function ModificarVisitaForm({ visita }: { visita: VisitaRow }) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
           <Field
-            label="Nombre Completo" name="funcionario"
+            label="Nombre Completo" name="nombre_completo"
             placeholder="Ej. Juan Pérez"
-            defaultValue={visita.funcionario ?? ''}
+            defaultValue={contacto?.nombre_completo ?? ''}
           />
           <SelectField label="Sexo" name="sexo" defaultValue={visita.sexo ?? ''}>
             <option value="">Seleccionar...</option>
@@ -83,12 +87,11 @@ export function ModificarVisitaForm({ visita }: { visita: VisitaRow }) {
           />
 
           <Field
-            label="Cédula / RIF" name="id_contacto" type="number" required
-            placeholder="Cédula de Identidad"
-            defaultValue={visita.id_contacto != null ? String(visita.id_contacto) : ''}
+            label="Cédula / RIF" name="cedula_rif" required
+            placeholder="Ej. V-12345678 o J-12345678-9"
+            defaultValue={contacto?.cedula_rif ?? ''}
           />
-          {/* telefono_contacto no está en visitas.Row — campo visual sin persistencia directa */}
-          <Field label="Teléfono" name="telefono_contacto" placeholder="Ej. +58 412..." />
+          <Field label="Teléfono" name="telefono" placeholder="Ej. +58 412..." defaultValue={contacto?.telefono ?? ''} />
 
           <SelectField label="Municipio" name="municipio" defaultValue={visita.municipio ?? ''}>
             <option value="">Seleccionar...</option>
@@ -103,9 +106,9 @@ export function ModificarVisitaForm({ visita }: { visita: VisitaRow }) {
           </SelectField>
 
           <Field
-            label="Entidad" name="actividad_economica"
+            label="Entidad" name="nombre_entidad"
             placeholder="Ej. Empresa XYZ"
-            defaultValue={visita.actividad_economica ?? ''}
+            defaultValue={contacto?.nombre_entidad ?? ''}
           />
           <Field
             label="Cargo" name="cargo"
@@ -120,8 +123,9 @@ export function ModificarVisitaForm({ visita }: { visita: VisitaRow }) {
             ))}
           </SelectField>
           <Field
-            label="Actividad Económica" name="actividad_economica_desc"
+            label="Actividad Económica" name="actividad_economica"
             placeholder="Ej. Industria"
+            defaultValue={visita.actividad_economica ?? ''}
           />
 
           <SelectField label="Estatus de la Solicitud" name="estatus" required defaultValue={visita.estatus}>
@@ -147,7 +151,7 @@ export function ModificarVisitaForm({ visita }: { visita: VisitaRow }) {
         </SelectField>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Field label="Funcionario" name="funcionario_nombre" placeholder="Nombre del funcionario" />
+          <Field label="Funcionario" name="funcionario" placeholder="Nombre del funcionario" defaultValue={visita.funcionario ?? ''} />
         </div>
       </fieldset>
 

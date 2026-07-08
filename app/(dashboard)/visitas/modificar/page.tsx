@@ -25,7 +25,7 @@ export default async function ModificarVisitaPage({ searchParams }: PageProps) {
   if (codigo) {
     const { data, error } = await supabase
       .from('visitas')
-      .select('*')
+      .select('*, contactos(*)')
       .eq('codigo_visita', codigo.trim())
       .single()
 

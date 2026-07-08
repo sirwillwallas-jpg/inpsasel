@@ -57,7 +57,7 @@ export function RegistrarVisitaForm() {
           {/* Nombre Completo | Sexo */}
           <Field
             label="Nombre Completo"
-            name="funcionario"
+            name="nombre_completo"
             placeholder="Ej. Juan Pérez"
           />
           <SelectField label="Sexo" name="sexo">
@@ -83,14 +83,13 @@ export function RegistrarVisitaForm() {
           {/* Cédula / RIF | Teléfono */}
           <Field
             label="Cédula / RIF"
-            name="id_contacto"
-            type="number"
+            name="cedula_rif"
             required
-            placeholder="Cédula de Identidad"
+            placeholder="Ej. V-12345678 o J-12345678-9"
           />
           <Field
             label="Teléfono"
-            name="telefono_contacto"
+            name="telefono"
             placeholder="Ej. +58 412..."
           />
 
@@ -110,7 +109,7 @@ export function RegistrarVisitaForm() {
           {/* Entidad | Cargo */}
           <Field
             label="Entidad"
-            name="actividad_economica"
+            name="nombre_entidad"
             placeholder="Ej. Empresa XYZ"
           />
           <Field
@@ -128,7 +127,7 @@ export function RegistrarVisitaForm() {
           </SelectField>
           <Field
             label="Actividad Económica"
-            name="actividad_economica_desc"
+            name="actividad_economica"
             placeholder="Ej. Industria"
           />
 
@@ -160,7 +159,7 @@ export function RegistrarVisitaForm() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field
             label="Funcionario"
-            name="funcionario_nombre"
+            name="funcionario"
             placeholder="Nombre del funcionario"
           />
         </div>

@@ -1,0 +1,37 @@
+-- OBLIGATORIO: requerido para el upsert con onConflict
+ALTER TABLE contactos
+  ADD CONSTRAINT contactos_cedula_rif_key UNIQUE (cedula_rif);
+
+-- -----------------------------------------------------------------------------
+-- Migración opcional de datos legacy
+--
+-- Este bloque sirve para reconstruir contactos a partir de visitas antiguas que
+-- guardaban la cédula/RIF directamente en visitas.id_contacto.
+--
+-- 1. Crear contactos desde el valor legado de id_contacto.
+-- 2. Reapuntar el FK de visitas al contacto creado.
+-- 3. Limpiar campos semánticamente mezclados en las visitas migradas.
+--
+-- Descomentar y adaptar solo si necesitas migrar datos existentes.
+-- -----------------------------------------------------------------------------
+--
+-- INSERT INTO contactos (cedula_rif, nombre_completo, telefono, nombre_entidad, tipo_contacto)
+-- SELECT DISTINCT
+--   v.id_contacto::text AS cedula_rif,
+--   COALESCE(v.funcionario, 'No especificado') AS nombre_completo,
+--   NULL AS telefono,
+--   COALESCE(v.actividad_economica, 'No especificada') AS nombre_entidad,
+--   'Individual' AS tipo_contacto
+-- FROM visitas v
+-- WHERE v.id_contacto IS NOT NULL
+-- ON CONFLICT (cedula_rif) DO NOTHING;
+--
+-- UPDATE visitas v
+-- SET id_contacto = c.id_contacto
+-- FROM contactos c
+-- WHERE c.cedula_rif = v.id_contacto::text;
+--
+-- UPDATE visitas
+-- SET funcionario = NULL,
+--     actividad_economica = NULL
+-- WHERE id_contacto IS NOT NULL;

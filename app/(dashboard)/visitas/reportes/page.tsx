@@ -20,7 +20,7 @@ export default async function ReportesMasivosPage({ searchParams }: PageProps) {
     const supabase = await createClient()
     const { data, error: err } = await supabase
       .from('visitas')
-      .select('*')
+      .select('*, contactos(*)')
       .gte('fecha', desde)
       .lte('fecha', hasta)
       .order('fecha', { ascending: true })

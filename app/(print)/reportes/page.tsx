@@ -13,7 +13,7 @@ export default async function PrintReportesMasivosPage({ searchParams }: PagePro
   const supabase = await createClient()
   const { data: visitas, error } = await supabase
     .from('visitas')
-    .select('*')
+    .select('*, contactos(*)')
     .gte('fecha', desde)
     .lte('fecha', hasta)
     .order('fecha', { ascending: true })
