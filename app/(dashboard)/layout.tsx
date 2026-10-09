@@ -15,9 +15,9 @@ export default async function DashboardLayout({
   const roleName = (user.user_metadata?.roleName as string) ?? ''
 
   return (
-    <div className="flex min-h-screen" style={{ background: 'linear-gradient(135deg, #dbeafe 0%, #eff6ff 60%, #e0f2fe 100%)' }}>
+    <div className="flex flex-col md:flex-row min-h-screen" style={{ background: 'linear-gradient(135deg, #dbeafe 0%, #eff6ff 60%, #e0f2fe 100%)' }}>
       <Sidebar roleName={roleName} />
-      <main className="flex-1 p-6 md:p-8 overflow-auto">
+      <main className="flex-1 min-w-0 p-4 sm:p-6 md:p-8 overflow-auto">
         {children}
       </main>
     </div>

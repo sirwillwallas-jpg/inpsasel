@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import { logoutAction } from '@/actions/auth'
 import { userCanManageVisits } from '@/lib/auth/permissions'
 
@@ -17,6 +18,7 @@ const NAV = {
     { href: '/visitas/eliminar',  label: 'Eliminar',  adminOnly: true },
   ],
   REPORTES: [
+    { href: '/visitas/hoy',        label: 'Visitas del día' },
     { href: '/visitas/calendario', label: 'Calendario de visitas' },
   ],
 }
@@ -25,13 +27,56 @@ export function Sidebar({ roleName }: SidebarProps) {
   const pathname  = usePathname()
   const canManage = userCanManageVisits(roleName)
 
+  const [abierto, setAbierto] = useState(false)
+
+  // Cierra el menú móvil al navegar
+  useEffect(() => { setAbierto(false) }, [pathname])
+
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/')
 
   return (
-    <aside
-      className="w-64 shrink-0 flex flex-col min-h-screen"
+    <>
+    {/* Barra superior — solo móvil */}
+    <header
+      className="md:hidden sticky top-0 z-30 flex items-center justify-between px-4 py-3 no-print"
       style={{ background: '#1a2744' }}
     >
+      <p className="text-white text-sm font-semibold truncate">INPSASEL · Registro de Visitas</p>
+      <button
+        type="button"
+        onClick={() => setAbierto(true)}
+        aria-label="Abrir menú"
+        aria-expanded={abierto}
+        className="text-white text-2xl leading-none px-2 py-1 rounded hover:bg-white/10"
+      >
+        ☰
+      </button>
+    </header>
+
+    {/* Fondo oscuro del menú móvil */}
+    {abierto && (
+      <div
+        className="md:hidden fixed inset-0 z-40 bg-black/50"
+        onClick={() => setAbierto(false)}
+        aria-hidden="true"
+      />
+    )}
+
+    <aside
+      className={`fixed inset-y-0 left-0 z-50 w-64 max-w-[85vw] flex flex-col overflow-y-auto transition-transform duration-200
+        md:sticky md:top-0 md:h-screen md:translate-x-0 md:shrink-0
+        ${abierto ? 'translate-x-0' : '-translate-x-full'}`}
+      style={{ background: '#1a2744' }}
+    >
+      {/* Cerrar — solo móvil */}
+      <button
+        type="button"
+        onClick={() => setAbierto(false)}
+        aria-label="Cerrar menú"
+        className="md:hidden absolute top-3 right-3 text-white/70 hover:text-white text-2xl leading-none"
+      >
+        ×
+      </button>
       {/* Logo + título */}
       <div className="flex flex-col items-center px-6 pt-8 pb-6 border-b border-white/10">
         <Image
@@ -84,6 +129,7 @@ export function Sidebar({ roleName }: SidebarProps) {
         </form>
       </div>
     </aside>
+    </>
   )
 }
 

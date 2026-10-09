@@ -1,11 +1,12 @@
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
+import { hoyLocal } from '@/lib/fecha'
 
 export const metadata: Metadata = { title: 'Visitas del Día — INPSASEL' }
 
 export default async function VisitasDelDiaPage() {
   const supabase = await createClient()
-  const hoy = new Date().toISOString().split('T')[0] // 'YYYY-MM-DD'
+  const hoy = hoyLocal() // 'YYYY-MM-DD' en hora de Venezuela
 
   const { data: visitas, error } = await supabase
     .from('visitas')
@@ -46,7 +47,7 @@ export default async function VisitasDelDiaPage() {
               {visitas?.map((v) => (
                 <tr key={v.id_visita} className="hover:bg-gray-50">
                   <td className="px-4 py-3 font-mono text-xs">{v.codigo_visita}</td>
-                  <td className="px-4 py-3">{v.hora}</td>
+                  <td className="px-4 py-3">{v.hora?.slice(0, 5)}</td>
                   <td className="px-4 py-3">{v.contactos?.nombre_completo ?? '—'}</td>
                   <td className="px-4 py-3">{v.tipo_visita}</td>
                   <td className="px-4 py-3">

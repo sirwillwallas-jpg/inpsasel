@@ -177,3 +177,24 @@
   }
 }
 
+
+/* ── FullCalendar en móvil: barra compacta y que no se desborde ── */
+@media (max-width: 640px) {
+  .calendario-visitas .fc .fc-toolbar {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
+  }
+  .calendario-visitas .fc .fc-toolbar-title {
+    font-size: 1.1rem;
+  }
+  .calendario-visitas .fc .fc-toolbar-chunk:nth-child(2) {
+    order: -1;
+    width: 100%;
+    text-align: center;
+  }
+  .calendario-visitas .fc .fc-button {
+    padding: 0.3rem 0.55rem;
+    font-size: 0.8rem;
+  }
+}

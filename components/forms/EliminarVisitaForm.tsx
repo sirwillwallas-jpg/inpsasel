@@ -1,13 +1,17 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useAccionFormulario } from '@/hooks/useAccionFormulario'
 import { eliminarVisitaAction } from '@/actions/visitas'
 
 export function EliminarVisitaForm() {
-  const [state, action, isPending] = useActionState(eliminarVisitaAction, null)
+  const { state, isPending, formRef, onSubmit } = useAccionFormulario(eliminarVisitaAction, {
+    resetEnExito: true,
+    confirmar: (fd) =>
+      window.confirm(`¿Eliminar definitivamente la visita ${String(fd.get('codigo_visita') ?? '').trim()}? Esta acción no se puede deshacer.`),
+  })
 
   return (
-    <form action={action} className="card space-y-4">
+    <form ref={formRef} onSubmit={onSubmit} className="card space-y-4">
       <div>
         <label htmlFor="codigo_visita" className="block text-sm font-medium text-gray-700 mb-1">
           Código de Visita

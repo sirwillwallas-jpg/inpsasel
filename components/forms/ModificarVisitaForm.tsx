@@ -1,6 +1,7 @@
 'use client'
 
-import { useActionState, useState } from 'react'
+import { useState } from 'react'
+import { useAccionFormulario } from '@/hooks/useAccionFormulario'
 import { modificarVisitaAction } from '@/actions/visitas'
 import {
   TIPOS_VISITA,
@@ -13,7 +14,10 @@ import type { Database } from '@/types/database'
 type VisitaRow = Database['public']['Tables']['visitas']['Row']
 type ContactoRow = Database['public']['Tables']['contactos']['Row']
 
-export type VisitaConContacto = VisitaRow & { contactos: ContactoRow | null }
+export type VisitaConContacto = VisitaRow & {
+  contactos: ContactoRow | null
+  ordenes_trabajo: { codigo_ot: string } | null
+}
 
 const MUNICIPIOS_PORTUGUESA = [
   'Agua Blanca', 'Araure', 'Esteller', 'Guanare', 'Guanarito',
@@ -23,7 +27,7 @@ const MUNICIPIOS_PORTUGUESA = [
 ] as const
 
 export function ModificarVisitaForm({ visita }: { visita: VisitaConContacto }) {
-  const [state, action, isPending] = useActionState(modificarVisitaAction, null)
+  const { state, isPending, formRef, onSubmit } = useAccionFormulario(modificarVisitaAction)
   const contacto = visita.contactos
 
   const [mostrarObservaciones, setMostrarObservaciones] = useState(
@@ -31,10 +35,10 @@ export function ModificarVisitaForm({ visita }: { visita: VisitaConContacto }) {
   )
 
   return (
-    <form action={action} className="card space-y-6">
+    <form ref={formRef} onSubmit={onSubmit} className="card space-y-6">
       <input type="hidden" name="codigo_visita" value={visita.codigo_visita} />
 
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
           <h2 className="text-base font-semibold text-gray-800">{visita.codigo_visita}</h2>
           <p className="text-xs text-gray-400 mt-0.5">Editando campos modificables</p>
@@ -76,7 +80,7 @@ export function ModificarVisitaForm({ visita }: { visita: VisitaConContacto }) {
           </SelectField>
 
           <Field
-            label="Edad" name="edad" type="number"
+            label="Edad" name="edad" type="number" min={1} max={120}
             placeholder="Edad"
             defaultValue={visita.edad != null ? String(visita.edad) : ''}
           />
@@ -87,11 +91,11 @@ export function ModificarVisitaForm({ visita }: { visita: VisitaConContacto }) {
           />
 
           <Field
-            label="Cédula / RIF" name="cedula_rif" required
+            label="Cédula / RIF" name="cedula_rif" required maxLength={20}
             placeholder="Ej. V-12345678 o J-12345678-9"
             defaultValue={contacto?.cedula_rif ?? ''}
           />
-          <Field label="Teléfono" name="telefono" placeholder="Ej. +58 412..." defaultValue={contacto?.telefono ?? ''} />
+          <Field label="Teléfono" name="telefono" type="tel" maxLength={20} placeholder="Ej. +58 412..." defaultValue={contacto?.telefono ?? ''} />
 
           <SelectField label="Municipio" name="municipio" defaultValue={visita.municipio ?? ''}>
             <option value="">Seleccionar...</option>
@@ -152,6 +156,11 @@ export function ModificarVisitaForm({ visita }: { visita: VisitaConContacto }) {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="Funcionario" name="funcionario" placeholder="Nombre del funcionario" defaultValue={visita.funcionario ?? ''} />
+          <Field
+            label="Código OT" name="codigo_ot" maxLength={20}
+            placeholder="Ej. OT-2024-001"
+            defaultValue={visita.ordenes_trabajo?.codigo_ot ?? ''}
+          />
         </div>
       </fieldset>
 
@@ -166,6 +175,8 @@ export function ModificarVisitaForm({ visita }: { visita: VisitaConContacto }) {
           />
           <span className="text-sm font-semibold text-gray-700">Observaciones</span>
         </label>
+        {/* Al desmarcar se envía vacío para que la observación se borre */}
+        {!mostrarObservaciones && <input type="hidden" name="observaciones" value="" />}
         {mostrarObservaciones && (
           <textarea
             name="observaciones"
@@ -200,10 +211,11 @@ export function ModificarVisitaForm({ visita }: { visita: VisitaConContacto }) {
 
 function Field({
   label, name, type = 'text', required = false,
-  placeholder = '', defaultValue = '',
+  placeholder = '', defaultValue = '', min, max, maxLength,
 }: {
   label: string; name: string; type?: string
   required?: boolean; placeholder?: string; defaultValue?: string
+  min?: number; max?: number; maxLength?: number
 }) {
   return (
     <div>
@@ -213,6 +225,7 @@ function Field({
       <input
         id={name} name={name} type={type} required={required}
         placeholder={placeholder} defaultValue={defaultValue}
+        min={min} max={max} maxLength={maxLength}
         className="input-field"
       />
     </div>

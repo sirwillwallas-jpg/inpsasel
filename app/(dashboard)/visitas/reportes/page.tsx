@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { ReporteVisita } from '@/components/reportes/ReporteVisita'
 import { ReportesForm } from '@/components/reportes/ReportesForm'
@@ -16,11 +17,13 @@ export default async function ReportesMasivosPage({ searchParams }: PageProps) {
   let visitas: Parameters<typeof ReporteVisita>[0]['v'][] = []
   let error: string | null = null
 
-  if (desde && hasta) {
+  if (desde && hasta && desde > hasta) {
+    error = 'La fecha "desde" no puede ser posterior a "hasta".'
+  } else if (desde && hasta) {
     const supabase = await createClient()
     const { data, error: err } = await supabase
       .from('visitas')
-      .select('*, contactos(*)')
+      .select('*, contactos(*), ordenes_trabajo(codigo_ot)')
       .gte('fecha', desde)
       .lte('fecha', hasta)
       .order('fecha', { ascending: true })
@@ -34,11 +37,11 @@ export default async function ReportesMasivosPage({ searchParams }: PageProps) {
     <div className="max-w-5xl mx-auto space-y-6">
       {/* Panel de control */}
       <div className="no-print">
-        <div className="flex items-baseline gap-3 mb-4">
+        <div className="flex items-baseline gap-3 mb-4 flex-wrap">
           <h1 className="text-2xl font-bold text-gray-900">Reportes Masivos</h1>
-          <a href="/visitas/calendario" className="text-sm text-gray-400 hover:text-gray-600">
+          <Link href="/visitas/calendario" className="text-sm text-gray-400 hover:text-gray-600">
             ← Calendario
-          </a>
+          </Link>
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 space-y-4">
@@ -75,7 +78,7 @@ export default async function ReportesMasivosPage({ searchParams }: PageProps) {
 
       {/* Reportes — visibles en pantalla y al imprimir desde esta página */}
       {visitas.length > 0 && (
-        <div>
+        <div className="overflow-x-auto">
           {visitas.map((v) => (
             <ReporteVisita key={v.codigo_visita} v={v} />
           ))}

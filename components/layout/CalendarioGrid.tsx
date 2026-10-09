@@ -5,6 +5,7 @@ import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import type { EventDropArg, EventClickArg } from '@fullcalendar/core'
+import esLocale from '@fullcalendar/core/locales/es'
 import { useState, useCallback } from 'react'
 import { moverVisitaAction } from '@/actions/visitas'
 import { ReporteWizardModal } from '@/components/reportes/ReporteWizardModal'
@@ -21,7 +22,7 @@ type Visita = Record<string, any> & {
   funcionario?: string | null
 }
 
-type Props = { visitas: Visita[] }
+type Props = { visitas: Visita[]; puedeMover: boolean }
 
 const ESTATUS_COLOR: Record<string, string> = {
   'Planificada':   '#3b82f6',
@@ -33,7 +34,9 @@ const ESTATUS_COLOR: Record<string, string> = {
   'Emergencia':    '#f97316',
 }
 
-export function CalendarioGrid({ visitas }: Props) {
+export function CalendarioGrid({ visitas: visitasIniciales, puedeMover }: Props) {
+  // Copia local para reflejar los cambios de fecha tras arrastrar sin recargar la página
+  const [visitas, setVisitas]           = useState(visitasIniciales)
   const [detalle, setDetalle]           = useState<Visita | null>(null)
   const [moviendo, setMoviendo]         = useState(false)
   const [wizardCodigo, setWizardCodigo] = useState<string | null>(null)
@@ -62,6 +65,11 @@ export function CalendarioGrid({ visitas }: Props) {
     if (resultado && 'error' in resultado) {
       alert(resultado.error)
       info.revert()
+    } else {
+      setVisitas((prev) =>
+        prev.map((v) => (v.codigo_visita === info.event.id ? { ...v, fecha: nuevaFecha } : v))
+      )
+      setDetalle((d) => (d && d.codigo_visita === info.event.id ? { ...d, fecha: nuevaFecha } : d))
     }
     setMoviendo(false)
   }, [])
@@ -73,8 +81,8 @@ export function CalendarioGrid({ visitas }: Props) {
   return (
     <div className="space-y-4">
       {/* Buscador por código de visita */}
-      <div className="flex items-center gap-3">
-        <div className="relative flex-1 max-w-xs">
+      <div className="flex items-center gap-3 flex-wrap">
+        <div className="relative flex-1 min-w-0 sm:max-w-xs">
           <span className="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none text-sm">
             🔍
           </span>
@@ -107,11 +115,11 @@ export function CalendarioGrid({ visitas }: Props) {
         </div>
       )}
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+      <div className="calendario-visitas bg-white rounded-2xl shadow-sm border border-gray-100 p-2 sm:p-4 overflow-x-auto">
         <FullCalendar
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
           initialView="dayGridMonth"
-          locale="es"
+          locale={esLocale}
           firstDay={1}
           headerToolbar={{
             left:   'prev,next today',
@@ -120,8 +128,8 @@ export function CalendarioGrid({ visitas }: Props) {
           }}
           buttonText={{ today: 'Hoy', month: 'Mes', week: 'Semana', day: 'Día' }}
           events={eventos}
-          editable={true}
-          droppable={true}
+          editable={puedeMover}
+          eventDurationEditable={false}
           eventDrop={onDrop}
           eventClick={onClickEvento}
           height="auto"
@@ -145,14 +153,18 @@ export function CalendarioGrid({ visitas }: Props) {
               <button onClick={() => setDetalle(null)} className="text-white/60 hover:text-white text-lg leading-none">×</button>
             </div>
           </div>
-          <div className="px-5 py-4 grid grid-cols-2 gap-3 text-sm">
+          <div className="px-5 py-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+            {detalle.contactos?.nombre_completo && (
+              <Info label="Visitante" value={detalle.contactos.nombre_completo} />
+            )}
+            {detalle.contactos?.cedula_rif && <Info label="Cédula / RIF" value={detalle.contactos.cedula_rif} />}
             <Info label="Fecha"    value={detalle.fecha} />
             <Info label="Hora"     value={detalle.hora?.slice(0, 5)} />
             <Info label="Tipo"     value={detalle.tipo_visita} />
             <Info label="Estatus"  value={detalle.estatus} />
             {detalle.funcionario   && <Info label="Funcionario"  value={detalle.funcionario} />}
             {detalle.motivo_visita && (
-              <div className="col-span-2"><Info label="Motivo" value={detalle.motivo_visita} /></div>
+              <div className="sm:col-span-2"><Info label="Motivo" value={detalle.motivo_visita} /></div>
             )}
           </div>
           <div className="px-5 pb-4">
@@ -188,11 +200,11 @@ export function CalendarioGrid({ visitas }: Props) {
   )
 }
 
-function Info({ label, value }: { label: string; value: string }) {
+function Info({ label, value }: { label: string; value?: string | null }) {
   return (
     <div>
       <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">{label}</p>
-      <p className="text-gray-800 mt-0.5">{value}</p>
+      <p className="text-gray-800 mt-0.5 break-words">{value || '—'}</p>
     </div>
   )
 }

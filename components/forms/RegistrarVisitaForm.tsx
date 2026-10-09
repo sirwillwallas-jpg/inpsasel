@@ -1,6 +1,7 @@
 'use client'
 
-import { useActionState, useState } from 'react'
+import { useState } from 'react'
+import { useAccionFormulario } from '@/hooks/useAccionFormulario'
 import { registrarVisitaAction } from '@/actions/visitas'
 import {
   TIPOS_VISITA,
@@ -27,12 +28,14 @@ const MUNICIPIOS_PORTUGUESA = [
 ] as const
 
 export function RegistrarVisitaForm() {
-  const [state, action, isPending] = useActionState(registrarVisitaAction, null)
+  const { state, isPending, formRef, onSubmit } = useAccionFormulario(registrarVisitaAction, {
+    resetEnExito: true,
+  })
   const [mostrarObservaciones, setMostrarObservaciones] = useState(false)
   const [mostrarCodigoOT, setMostrarCodigoOT]           = useState(false)
 
   return (
-    <form action={action} className="card space-y-6">
+    <form ref={formRef} onSubmit={onSubmit} className="card space-y-6">
 
       {/* ── Datos de la Visita ───────────────────────────────── */}
       <fieldset className="space-y-4">
@@ -72,6 +75,8 @@ export function RegistrarVisitaForm() {
             label="Edad"
             name="edad"
             type="number"
+            min={1}
+            max={120}
             placeholder="Edad"
           />
           <Field
@@ -85,11 +90,14 @@ export function RegistrarVisitaForm() {
             label="Cédula / RIF"
             name="cedula_rif"
             required
+            maxLength={20}
             placeholder="Ej. V-12345678 o J-12345678-9"
           />
           <Field
             label="Teléfono"
             name="telefono"
+            type="tel"
+            maxLength={20}
             placeholder="Ej. +58 412..."
           />
 
@@ -202,6 +210,7 @@ export function RegistrarVisitaForm() {
           <Field
             label="Código OT"
             name="codigo_ot"
+            maxLength={20}
             placeholder="Ej. OT-2024-001"
           />
         )}
@@ -236,12 +245,18 @@ function Field({
   type = 'text',
   required = false,
   placeholder = '',
+  min,
+  max,
+  maxLength,
 }: {
   label: string
   name: string
   type?: string
   required?: boolean
   placeholder?: string
+  min?: number
+  max?: number
+  maxLength?: number
 }) {
   return (
     <div>
@@ -255,6 +270,9 @@ function Field({
         type={type}
         required={required}
         placeholder={placeholder}
+        min={min}
+        max={max}
+        maxLength={maxLength}
         className="input-field"
       />
     </div>
