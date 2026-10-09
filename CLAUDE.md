@@ -1,5 +1,8 @@
 # Directrices de Desarrollo para Claude Code
 
+## Contexto del Proyecto
+- Antes de cualquier tarea, lee `KNOWLEDGE.md` (arquitectura, modelo de datos, permisos, deuda técnica).
+
 ## Identidad y Comunicación
 - **Idioma:** Responde y razona siempre en español.
 - **Tono:** Profesional, técnico pero conciso. Prefiere la brevedad cuando la respuesta sea clara.
