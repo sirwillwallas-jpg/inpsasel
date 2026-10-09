@@ -19,6 +19,7 @@ interface VisitaReporte {
   funcionario?: string | null
   id_contacto?: number | null
   id_orden?: number | null
+  ordenes_trabajo?: { codigo_ot?: string | null } | null
   contactos?: {
     cedula_rif?: string | null
     nombre_completo?: string | null
@@ -75,9 +76,9 @@ export function ReporteVisita({ v }: { v: VisitaReporte }) {
           <div style={{ marginTop: '6px', fontSize: '8.5pt' }}>
             <span style={{ color: '#666' }}>Código: </span>
             <strong style={{ color: '#1a2744' }}>{v.codigo_visita}</strong>
-            {v.id_orden && (
+            {v.ordenes_trabajo?.codigo_ot && (
               <span style={{ marginLeft: '16px', color: '#666' }}>
-                OT: <strong style={{ color: '#1a2744' }}>OT-{v.id_orden}</strong>
+                OT: <strong style={{ color: '#1a2744' }}>{v.ordenes_trabajo.codigo_ot}</strong>
               </span>
             )}
           </div>
@@ -112,7 +113,7 @@ export function ReporteVisita({ v }: { v: VisitaReporte }) {
           {v.contactos?.cedula_rif && <Campo label="CÉDULA / RIF" valor={v.contactos.cedula_rif} />}
           {v.contactos?.telefono && <Campo label="TELÉFONO" valor={v.contactos.telefono} />}
           {v.contactos?.nombre_entidad && <Campo label="ENTIDAD" valor={v.contactos.nombre_entidad} />}
-          {v.edad          && <Campo label="EDAD"            valor={`${v.edad} años`} />}
+          {v.edad != null  && <Campo label="EDAD"            valor={`${v.edad} años`} />}
           {v.sexo          && <Campo label="SEXO"            valor={v.sexo} />}
           {v.municipio     && <Campo label="MUNICIPIO"       valor={v.municipio} />}
           {v.sector        && <Campo label="SECTOR"          valor={v.sector} />}

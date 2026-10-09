@@ -10,6 +10,7 @@ type Visita = {
   estatus: string
   motivo_visita: string | null
   funcionario: string | null
+  contactos: { cedula_rif: string; nombre_completo: string | null } | null
 }
 
 const CalendarioGrid = dynamic(
@@ -17,6 +18,6 @@ const CalendarioGrid = dynamic(
   { ssr: false, loading: () => <p className="text-gray-400 text-sm p-4">Cargando calendario...</p> }
 )
 
-export function CalendarioWrapper({ visitas }: { visitas: Visita[] }) {
-  return <CalendarioGrid visitas={visitas} />
+export function CalendarioWrapper({ visitas, puedeMover }: { visitas: Visita[]; puedeMover: boolean }) {
+  return <CalendarioGrid visitas={visitas} puedeMover={puedeMover} />
 }

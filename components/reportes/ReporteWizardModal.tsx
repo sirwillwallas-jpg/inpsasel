@@ -30,7 +30,7 @@ export function ReporteWizardModal({ codigo, onClose }: Props) {
     >
       <div
         className="bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden w-full"
-        style={{ maxWidth: 760, maxHeight: '92vh' }}
+        style={{ maxWidth: 760, height: '92vh' }}
       >
         {/* Header */}
         <div
@@ -50,7 +50,7 @@ export function ReporteWizardModal({ codigo, onClose }: Props) {
         </div>
 
         {/* Vista previa via iframe */}
-        <div className="relative flex-1 overflow-hidden bg-gray-100">
+        <div className="relative flex-1 min-h-0 overflow-hidden bg-gray-100">
           {!loaded && (
             <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-sm">
               Cargando reporte…
@@ -71,11 +71,11 @@ export function ReporteWizardModal({ codigo, onClose }: Props) {
         </div>
 
         {/* Footer con acciones */}
-        <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between gap-3 bg-white shrink-0">
+        <div className="px-4 sm:px-6 py-4 border-t border-gray-100 flex items-center justify-between gap-3 flex-wrap bg-white shrink-0">
           <p className="text-xs text-gray-400">
             ¿Descargar? Usa <strong>Imprimir → Guardar como PDF</strong>
           </p>
-          <div className="flex gap-3">
+          <div className="flex gap-3 flex-wrap">
             <button
               onClick={handleDownload}
               className="px-5 py-2.5 rounded-xl text-sm font-semibold border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 shadow-sm transition-colors"

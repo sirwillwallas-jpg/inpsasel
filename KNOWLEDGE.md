@@ -98,13 +98,17 @@ y regenerar `types/database.ts`.
 
 ## 6. Flujos clave (`actions/visitas.ts`)
 
-- **Registrar**: valida con Zod → `upsertContacto` (onConflict `cedula_rif`) → `generarCodigoVisita`
-  (máximo existente del día + 1) → insert → `revalidatePath`.
-  ⚠️ El código no es atómico: dos altas simultáneas el mismo día pueden colisionar.
-- **Modificar**: requiere admin; re-upsert del contacto y update por `codigo_visita`.
-- **Eliminar**: requiere admin; delete por `codigo_visita`, redirige a `/menu`.
-- **Mover** (drag&drop del calendario): actualiza solo `fecha`. ⚠️ Hoy **no comprueba el rol**.
+- **Registrar**: valida con Zod → `upsertContacto` (onConflict `cedula_rif`) → `resolverOrden`
+  (upsert de `ordenes_trabajo` por `codigo_ot`) → `generarCodigoVisita` (máximo del día + 1) → insert.
+  Si el insert choca con el UNIQUE de `codigo_visita` (alta simultánea) reintenta hasta 5 veces.
+- **Modificar**: requiere admin; re-upsert del contacto/OT y update por `codigo_visita`. Error si no existe.
+- **Eliminar**: requiere admin; confirmación en el cliente; error si el código no existe.
+- **Mover** (drag&drop del calendario): requiere admin; valida la fecha. Para otros roles el calendario no es arrastrable.
+- Validación: los campos vacíos se convierten a `NULL` (así se pueden borrar al modificar); `edad` vacía es válida.
 - Formato de hora: el schema recorta a `HH:MM` (`z.preprocess`) porque Postgres devuelve `HH:MM:SS`.
+- Fechas "de hoy": usar `hoyLocal()` de `lib/fecha.ts` (America/Caracas), nunca `toISOString()` (UTC).
+- Formularios: usar `useAccionFormulario` (`hooks/`) en lugar de `<form action>`; React 19 resetea el
+  formulario tras la acción y se perdían los datos al haber errores.
 - Colores por estatus del calendario: `ESTATUS_COLOR` en `components/layout/CalendarioGrid.tsx`.
 
 ## 7. Variables de entorno
@@ -123,6 +127,18 @@ Secrets del workflow de backup (GitHub): `SUPABASE_DB_HOST`, `SUPABASE_DB_USER`,
 `SUPABASE_DB_PASSWORD` (puerto 6543, pooler).
 
 ## 8. Comandos
+
+### QA local con Supabase en Docker
+
+```bash
+npx supabase init && npx supabase start -x studio,imgproxy,mailpit,realtime,storage-api,edge-runtime,logflare,vector,supavisor,postgres-meta
+psql postgresql://postgres:postgres@127.0.0.1:54322/postgres -f scripts/schema-supabase.sql \
+  -f supabase/migrations/20260707_contactos_integracion.sql -f supabase/migrations/20261009_habilitar_rls.sql
+# .env.local → NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321 y la PUBLISHABLE_KEY que imprime `supabase start`
+# Crear usuarios con SUPABASE_SECRET_KEY local: npm run seed:users
+```
+
+### Scripts
 
 ```bash
 npm install
@@ -150,10 +166,11 @@ En Windows/PowerShell, al regenerar tipos usar `Out-File -Encoding utf8` (la red
 
 - `README.md` desactualizado (describe Express). Reescribir a partir de este documento.
 - Credenciales iniciales escritas en claro en `scripts/seed-users.ts` y en `README.md` → mover a variables de entorno y rotarlas.
-- `moverVisitaAction` no valida permisos de rol.
-- `generarCodigoVisita` sin bloqueo/secuencia → posible condición de carrera.
-- Logo de Sidebar cargado desde Bing (`tse3.mm.bing.net`) → mover a `public/`.
-- Sin políticas RLS documentadas en el repo; confirmar en Supabase.
+- RLS: `supabase/migrations/20261009_habilitar_rls.sql` lo activa (bloquea `anon`). **Aplicar en producción**
+  desde el SQL Editor de Supabase si aún no está activo.
+- El rol se lee de `user_metadata`, que el propio usuario puede modificar con `auth.updateUser()`.
+  Lo correcto es moverlo a `app_metadata` (solo editable con service_role).
+- Logo cargado desde Bing (`tse3.mm.bing.net`) en Sidebar, login y reportes → mover a `public/`.
 - `tsconfig.tsbuildinfo` versionado (debería ignorarse).
 - Sin tests automatizados ni CI de lint/typecheck.
 

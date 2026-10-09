@@ -1,13 +1,14 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useAccionFormulario } from '@/hooks/useAccionFormulario'
 import { loginAction } from '@/actions/auth'
 
-export function LoginForm() {
-  const [state, action, isPending] = useActionState(loginAction, null)
+export function LoginForm({ next }: { next?: string }) {
+  const { state, isPending, onSubmit } = useAccionFormulario(loginAction)
 
   return (
-    <form action={action} className="space-y-4">
+    <form onSubmit={onSubmit} className="space-y-4">
+      {next && <input type="hidden" name="next" value={next} />}
       <div>
         <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
           Usuario
@@ -38,7 +39,7 @@ export function LoginForm() {
         />
       </div>
 
-      {state?.error && (
+      {state && 'error' in state && (
         <p role="alert" className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
           {state.error}
         </p>

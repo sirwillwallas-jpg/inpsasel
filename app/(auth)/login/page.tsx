@@ -4,7 +4,13 @@ import { LoginForm } from '@/components/forms/LoginForm'
 
 export const metadata: Metadata = { title: 'Inicio de sesión — INPSASEL' }
 
-export default function LoginPage() {
+interface PageProps {
+  searchParams: Promise<{ next?: string }>
+}
+
+export default async function LoginPage({ searchParams }: PageProps) {
+  const { next } = await searchParams
+
   return (
     <>
       {/* Encabezado de marca */}
@@ -31,7 +37,7 @@ export default function LoginPage() {
         Ingrese con el usuario autorizado para continuar.
       </p>
 
-      <LoginForm />
+      <LoginForm next={next} />
     </>
   )
 }

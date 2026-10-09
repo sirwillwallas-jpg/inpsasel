@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { userCanManageVisits } from '@/lib/auth/permissions'
+import { esFechaValida } from '@/lib/fecha'
 import {
   registrarVisitaSchema,
   eliminarVisitaSchema,
@@ -12,10 +13,20 @@ import {
 
 export type ActionState = { error: string } | { success: string } | null
 
+type SupabaseServer = Awaited<ReturnType<typeof createClient>>
+
+/** Código de error de Postgres para violación de restricción UNIQUE. */
+const PG_UNIQUE_VIOLATION = '23505'
+const MAX_REINTENTOS_CODIGO = 5
+
+function revalidarVistasVisitas() {
+  revalidatePath('/visitas/hoy')
+  revalidatePath('/visitas/calendario')
+}
+
 /** Genera un codigo unico: VIS-YYYYMMDD-NNN. El contador se basa en el maximo existente. */
 async function generarCodigoVisita(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  supabase: any,
+  supabase: SupabaseServer,
   fecha: string
 ): Promise<string> {
   const fechaStr = fecha.replace(/-/g, '')
@@ -38,13 +49,12 @@ async function generarCodigoVisita(
 }
 
 async function upsertContacto(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  supabase: any,
+  supabase: SupabaseServer,
   c: {
     cedula_rif: string
-    nombre_completo?: string
-    telefono?: string
-    nombre_entidad?: string
+    nombre_completo?: string | null
+    telefono?: string | null
+    nombre_entidad?: string | null
   }
 ): Promise<number | null> {
   const { data, error } = await supabase
@@ -64,7 +74,33 @@ async function upsertContacto(
     return null
   }
 
-  return data.id_contacto as number
+  return data.id_contacto
+}
+
+/**
+ * Devuelve el id de la orden de trabajo con ese código, creándola si no existe.
+ * `undefined` → el campo no vino en el formulario (no tocar id_orden).
+ * `null`      → el campo vino vacío (desvincular la orden).
+ */
+async function resolverOrden(
+  supabase: SupabaseServer,
+  codigoOt: string | null | undefined
+): Promise<{ id_orden?: number | null } | { error: string }> {
+  if (codigoOt === undefined) return {}
+  if (codigoOt === null) return { id_orden: null }
+
+  const { data, error } = await supabase
+    .from('ordenes_trabajo')
+    .upsert({ codigo_ot: codigoOt }, { onConflict: 'codigo_ot' })
+    .select('id_orden')
+    .single()
+
+  if (error || !data) {
+    console.error('resolverOrden:', error?.message)
+    return { error: 'No se pudo guardar el código OT.' }
+  }
+
+  return { id_orden: data.id_orden }
 }
 
 export async function registrarVisitaAction(
@@ -92,6 +128,7 @@ export async function registrarVisitaAction(
     nombre_completo,
     telefono,
     nombre_entidad,
+    codigo_ot,
     ...visitaData
   } = parsed.data
 
@@ -106,23 +143,33 @@ export async function registrarVisitaAction(
     return { error: 'No se pudo guardar el contacto del visitante.' }
   }
 
-  const codigo_visita = await generarCodigoVisita(supabase, visitaData.fecha)
+  const orden = await resolverOrden(supabase, codigo_ot)
+  if ('error' in orden) return orden
 
-  const { error } = await supabase.from('visitas').insert({
-    ...visitaData,
-    codigo_visita,
-    id_contacto,
-    id_usuario: idUsuario,
-  })
+  // Reintenta si otro registro simultáneo tomó el mismo código (UNIQUE en codigo_visita).
+  for (let intento = 0; intento < MAX_REINTENTOS_CODIGO; intento++) {
+    const codigo_visita = await generarCodigoVisita(supabase, visitaData.fecha)
 
-  if (error) {
-    console.error('registrarVisita:', error.message)
-    return { error: error.message }
+    const { error } = await supabase.from('visitas').insert({
+      ...visitaData,
+      ...orden,
+      codigo_visita,
+      id_contacto,
+      id_usuario: idUsuario,
+    })
+
+    if (!error) {
+      revalidarVistasVisitas()
+      return { success: `Visita ${codigo_visita} registrada correctamente.` }
+    }
+
+    if (error.code !== PG_UNIQUE_VIOLATION) {
+      console.error('registrarVisita:', error.message)
+      return { error: 'No se pudo registrar la visita.' }
+    }
   }
 
-  revalidatePath('/visitas/hoy')
-  revalidatePath('/visitas/calendario')
-  return { success: `Visita ${codigo_visita} registrada correctamente.` }
+  return { error: 'No se pudo generar un código de visita único. Intente de nuevo.' }
 }
 
 export async function eliminarVisitaAction(
@@ -146,17 +193,23 @@ export async function eliminarVisitaAction(
     return { error: 'Codigo de visita invalido.' }
   }
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('visitas')
     .delete()
     .eq('codigo_visita', parsed.data.codigo_visita)
+    .select('codigo_visita')
 
   if (error) {
+    console.error('eliminarVisita:', error.message)
     return { error: 'No se pudo eliminar la visita.' }
   }
 
-  revalidatePath('/visitas/hoy')
-  redirect('/menu')
+  if (!data || data.length === 0) {
+    return { error: `No existe ninguna visita con código "${parsed.data.codigo_visita}".` }
+  }
+
+  revalidarVistasVisitas()
+  return { success: `Visita ${parsed.data.codigo_visita} eliminada correctamente.` }
 }
 
 export async function modificarVisitaAction(
@@ -186,6 +239,7 @@ export async function modificarVisitaAction(
     nombre_completo,
     telefono,
     nombre_entidad,
+    codigo_ot,
     ...visitaData
   } = parsed.data
 
@@ -200,20 +254,29 @@ export async function modificarVisitaAction(
     return { error: 'No se pudo guardar el contacto del visitante.' }
   }
 
-  const { error } = await supabase
+  const orden = await resolverOrden(supabase, codigo_ot)
+  if ('error' in orden) return orden
+
+  const { data, error } = await supabase
     .from('visitas')
     .update({
       ...visitaData,
+      ...orden,
       id_contacto,
     })
     .eq('codigo_visita', codigo_visita)
+    .select('codigo_visita')
 
   if (error) {
     console.error('modificarVisita:', error.message)
     return { error: 'No se pudo modificar la visita.' }
   }
 
-  revalidatePath('/visitas/hoy')
+  if (!data || data.length === 0) {
+    return { error: `No existe ninguna visita con código "${codigo_visita}".` }
+  }
+
+  revalidarVistasVisitas()
   return { success: `Visita ${codigo_visita} actualizada correctamente.` }
 }
 
@@ -225,23 +288,30 @@ export async function moverVisitaAction(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'No autenticado.' }
 
-  const { error } = await supabase
+  const roleName = (user.user_metadata?.roleName as string) ?? ''
+  if (!userCanManageVisits(roleName)) {
+    return { error: 'No tiene permisos para mover visitas.' }
+  }
+
+  if (!esFechaValida(nuevaFecha)) {
+    return { error: 'Fecha inválida.' }
+  }
+
+  const { data, error } = await supabase
     .from('visitas')
     .update({ fecha: nuevaFecha })
     .eq('codigo_visita', codigoVisita)
+    .select('codigo_visita')
 
-  if (error) return { error: error.message }
+  if (error) {
+    console.error('moverVisita:', error.message)
+    return { error: 'No se pudo mover la visita.' }
+  }
 
-  revalidatePath('/visitas/calendario')
+  if (!data || data.length === 0) {
+    return { error: 'La visita ya no existe.' }
+  }
+
+  revalidarVistasVisitas()
   return { success: `Visita movida al ${nuevaFecha}.` }
-}
-
-export async function fetchVisitaAction(codigoVisita: string) {
-  const supabase = await createClient()
-  const { data } = await supabase
-    .from('visitas')
-    .select('*, contactos(*)')
-    .eq('codigo_visita', codigoVisita.trim())
-    .single()
-  return data ?? null
 }
